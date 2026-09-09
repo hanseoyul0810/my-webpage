@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오늘</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #F6F5F1;
+    --ink: #21242B;
+    --ink-soft: #565B66;
+    --rule: #D9D7CE;
+    --teal: #3C6E71;
+    --amber: #C98A3B;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    margin:0;
+    padding:0;
+    min-height:100vh;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans KR', sans-serif;
+  }
+
+  body{
+    display:flex;
+    justify-content:center;
+    padding:9vh 24px 8vh;
+  }
+
+  main{
+    width:100%;
+    max-width:560px;
+  }
+
+  /* 날짜 / 시간 */
+  .clock{
+    text-align:center;
+    margin-bottom:7vh;
+  }
+
+  .clock .date{
+    font-size:15px;
+    letter-spacing:.02em;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+
+  .clock .time{
+    font-family:'Newsreader', serif;
+    font-weight:400;
+    font-size:clamp(56px, 11vw, 92px);
+    line-height:1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .clock .time .sec{
+    font-size:0.4em;
+    color:var(--ink-soft);
+    margin-left:6px;
+    font-family:'IBM Plex Sans KR', sans-serif;
+  }
+
+  /* 검색 */
+  .search{
+    margin-bottom:9vh;
+  }
+
+  .search form{
+    display:flex;
+    align-items:flex-end;
+    gap:12px;
+    border-bottom:1.5px solid var(--ink);
+    padding-bottom:10px;
+  }
+
+  .search input[type="text"]{
+    flex:1;
+    border:none;
+    background:none;
+    outline:none;
+    font-family:'Newsreader', serif;
+    font-size:22px;
+    color:var(--ink);
+    padding:2px 0;
+  }
+
+  .search input[type="text"]::placeholder{
+    color:#A9A79D;
+    font-style:italic;
+  }
+
+  .search button{
+    border:none;
+    background:none;
+    font-family:'IBM Plex Sans KR', sans-serif;
+    font-size:14px;
+    color:var(--teal);
+    cursor:pointer;
+    padding:6px 2px;
+    letter-spacing:.02em;
+  }
+
+  .search button:hover{
+    text-decoration:underline;
+  }
+
+  /* 할 일 */
+  .todo h2{
+    font-family:'Newsreader', serif;
+    font-weight:500;
+    font-size:20px;
+    margin:0 0 4px;
+  }
+
+  .todo .sub{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin-bottom:20px;
+  }
+
+  .todo-add{
+    display:flex;
+    gap:10px;
+    margin-bottom:18px;
+    border-bottom:1px solid var(--rule);
+    padding-bottom:12px;
+  }
+
+  .todo-add input{
+    flex:1;
+    border:none;
+    background:none;
+    outline:none;
+    font-family:'IBM Plex Sans KR', sans-serif;
+    font-size:15px;
+    color:var(--ink);
+    padding:4px 0;
+  }
+
+  .todo-add input::placeholder{
+    color:#A9A79D;
+  }
+
+  .todo-add button{
+    border:1px solid var(--ink);
+    background:none;
+    color:var(--ink);
+    font-size:13px;
+    padding:6px 14px;
+    cursor:pointer;
+    border-radius:2px;
+  }
+
+  .todo-add button:hover{
+    background:var(--ink);
+    color:var(--paper);
+  }
+
+  ul#list{
+    list-style:none;
+    margin:0;
+    padding:0;
+  }
+
+  ul#list li{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:11px 0;
+    border-bottom:1px solid var(--rule);
+  }
+
+  ul#list li .check{
+    width:17px;
+    height:17px;
+    margin-top:2px;
+    border:1.5px solid var(--ink-soft);
+    border-radius:50%;
+    flex-shrink:0;
+    cursor:pointer;
+    position:relative;
+  }
+
+  ul#list li.done .check{
+    background:var(--teal);
+    border-color:var(--teal);
+  }
+
+  ul#list li.done .check::after{
+    content:"";
+    position:absolute;
+    left:5px;
+    top:2px;
+    width:4px;
+    height:8px;
+    border:solid var(--paper);
+    border-width:0 2px 2px 0;
+    transform:rotate(45deg);
+  }
+
+  ul#list li .text{
+    flex:1;
+    font-size:15px;
+    line-height:1.5;
+    word-break:break-word;
+  }
+
+  ul#list li.done .text{
+    color:var(--ink-soft);
+    text-decoration:line-through;
+  }
+
+  ul#list li .del{
+    border:none;
+    background:none;
+    color:var(--ink-soft);
+    font-size:13px;
+    cursor:pointer;
+    padding:2px 4px;
+    opacity:0;
+    transition:opacity .15s;
+  }
+
+  ul#list li:hover .del{
+    opacity:1;
+  }
+
+  .empty{
+    color:var(--ink-soft);
+    font-size:14px;
+    font-style:italic;
+    padding:14px 0;
+  }
+
+  .counter{
+    margin-top:16px;
+    font-size:12px;
+    color:var(--ink-soft);
+    text-align:right;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    * { transition:none !important; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <section class="clock">
+    <div class="date" id="date"></div>
+    <div class="time" id="time">--:--<span class="sec" id="sec">--</span></div>
+  </section>
+
+  <section class="search">
+    <form id="searchForm" action="https://www.google.com/search" method="GET">
+      <input type="text" name="q" id="searchInput" placeholder="검색어를 입력하세요" autocomplete="off" autofocus>
+      <button type="submit">검색</button>
+    </form>
+  </section>
+
+  <section class="todo">
+    <h2>오늘의 할 일</h2>
+    <div class="sub" id="sub">아직 할 일이 없어요</div>
+
+    <div class="todo-add">
+      <input type="text" id="newTask" placeholder="할 일을 입력하고 Enter" autocomplete="off">
+      <button id="addBtn">추가</button>
+    </div>
+
+    <ul id="list"></ul>
+    <div class="counter" id="counter"></div>
+  </section>
+
+</main>
+
+<script>
+  // 날짜 / 시간
+  const dateEl = document.getElementById('date');
+  const timeEl = document.getElementById('time');
+  const secEl = document.getElementById('sec');
+  const weekdays = ['일','월','화','수','목','금','토'];
+
+  function pad(n){ return n.toString().padStart(2,'0'); }
+
+  function tick(){
+    const now = new Date();
+    dateEl.textContent = `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 ${weekdays[now.getDay()]}요일`;
+    timeEl.childNodes[0].nodeValue = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    secEl.textContent = pad(now.getSeconds());
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  // 할 일
+  const STORAGE_KEY = 'my-start-page-todos';
+  const list = document.getElementById('list');
+  const input = document.getElementById('newTask');
+  const addBtn = document.getElementById('addBtn');
+  const sub = document.getElementById('sub');
+  const counter = document.getElementById('counter');
+
+  function loadTasks(){
+    try{
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    }catch(e){
+      return [];
+    }
+  }
+
+  function saveTasks(tasks){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  }
+
+  function render(){
+    const tasks = loadTasks();
+    list.innerHTML = '';
+
+    if(tasks.length === 0){
+      sub.textContent = '아직 할 일이 없어요';
+      counter.textContent = '';
+      return;
+    }
+
+    const doneCount = tasks.filter(t => t.done).length;
+    sub.textContent = `${tasks.length}개 중 ${doneCount}개 완료`;
+    counter.textContent = `${doneCount} / ${tasks.length} 완료`;
+
+    tasks.forEach((task, i) => {
+      const li = document.createElement('li');
+      if(task.done) li.classList.add('done');
+
+      const check = document.createElement('div');
+      check.className = 'check';
+      check.onclick = () => toggleTask(i);
+
+      const text = document.createElement('div');
+      text.className = 'text';
+      text.textContent = task.text;
+
+      const del = document.createElement('button');
+      del.className = 'del';
+      del.textContent = '삭제';
+      del.onclick = () => deleteTask(i);
+
+      li.appendChild(check);
+      li.appendChild(text);
+      li.appendChild(del);
+      list.appendChild(li);
+    });
+  }
+
+  function addTask(){
+    const value = input.value.trim();
+    if(!value) return;
+    const tasks = loadTasks();
+    tasks.push({ text: value, done: false });
+    saveTasks(tasks);
+    input.value = '';
+    render();
+  }
+
+  function toggleTask(i){
+    const tasks = loadTasks();
+    tasks[i].done = !tasks[i].done;
+    saveTasks(tasks);
+    render();
+  }
+
+  function deleteTask(i){
+    const tasks = loadTasks();
+    tasks.splice(i, 1);
+    saveTasks(tasks);
+    render();
+  }
+
+  addBtn.addEventListener('click', addTask);
+  input.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') addTask();
+  });
+
+  render();
+
+  // 구글 검색
+  const searchForm = document.getElementById('searchForm');
+  const searchInput = document.getElementById('searchInput');
+
+  searchForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    const query = searchInput.value.trim();
+    if(!query) return;
+    window.location.href = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+  });
+</script>
+</body>
+</html>
