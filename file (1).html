@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한서율 | 개인 홈페이지</title>
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --card: #ffffff;
+    --text: #1c1c1e;
+    --muted: #6b6b70;
+    --accent: #2f5d50;
+    --line: #e4e4e0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    line-height: 1.7;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 64px 24px 80px; }
+
+  header { margin-bottom: 48px; }
+  .name {
+    font-size: 2.4rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+  }
+  .tagline { color: var(--muted); font-size: 1.05rem; margin: 0 0 20px; }
+  .email {
+    display: inline-block;
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    font-size: 0.95rem;
+  }
+  .email:hover { opacity: 0.7; }
+
+  section { margin-bottom: 36px; }
+  h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px 22px;
+  }
+
+  .interests { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .interests li {
+    background: #eef2f0;
+    color: var(--accent);
+    border-radius: 999px;
+    padding: 5px 14px;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .project {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    text-decoration: none;
+    color: inherit;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 22px;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .project:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .project .title { font-weight: 600; }
+  .project .meta { color: var(--muted); font-size: 0.88rem; }
+  .project .arrow { color: var(--accent); font-size: 1.2rem; flex-shrink: 0; }
+
+  footer {
+    margin-top: 56px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1 class="name">한서율</h1>
+    <p class="tagline">국립공주대학교 문헌정보교육과 한서율입니다.</p>
+    <a class="email" href="mailto:hanseoyul0810@gmail.com">hanseoyul0810@gmail.com</a>
+  </header>
+
+  <section>
+    <h2>소개</h2>
+    <div class="card">
+      안녕하세요, 국립공주대학교 문헌정보교육과에서 공부하고 있는 한서율입니다.
+      기록과 정보를 다루는 공부를 하면서, 쉬는 시간에는 영화를 보며 이야기를 수집합니다.
+    </div>
+  </section>
+
+  <section>
+    <h2>관심사</h2>
+    <ul class="interests">
+      <li>영화 감상</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>주요 활동</h2>
+    <div class="card">
+      영화관에 가서 영화를 감상합니다. 스크린에서만 느낄 수 있는 화면과 사운드를 좋아하고,
+      본 영화에 대한 감상을 정리해 두곤 합니다.
+    </div>
+  </section>
+
+  <section>
+    <h2>프로젝트</h2>
+    <a class="project" href="file:///C:/Users/%ED%95%9C%EC%84%9C%EC%9C%A8/Downloads/file.html">
+      <span>
+        <span class="title">오늘의 할 일 관리</span><br>
+        <span class="meta">하루의 할 일을 정리하고 관리하는 페이지</span>
+      </span>
+      <span class="arrow">→</span>
+    </a>
+  </section>
+
+  <footer>
+    © 2026 한서율 · <a class="email" href="mailto:hanseoyul0810@gmail.com">hanseoyul0810@gmail.com</a>
+  </footer>
+
+</div>
+</body>
+</html>
