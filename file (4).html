@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>도형 변환 탐구 교구</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Pretendard', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    background: #eef2f7;
+    color: #1b2432;
+    padding: 14px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .app { max-width: 980px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 12px; }
+  h1 { font-size: 21px; letter-spacing: -0.5px; }
+  .sub { font-size: 13px; color: #6b7888; margin-top: 4px; }
+
+  /* 모드 탭 */
+  .tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+  .tab {
+    flex: 1; padding: 12px; border: none; border-radius: 12px;
+    background: #fff; color: #6b7888; font-size: 15px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    box-shadow: 0 1px 3px rgba(20,40,80,.08);
+  }
+  .tab.active { background: #2f6df6; color: #fff; }
+
+  /* 도형 선택 */
+  .shapes { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .shape-btn {
+    flex: 1 1 0; min-width: 72px; padding: 10px 6px;
+    border: 2px solid #dbe3ee; border-radius: 12px; background: #fff;
+    cursor: pointer; font-family: inherit; font-size: 12px;
+    font-weight: 700; color: #55636f; display: flex;
+    flex-direction: column; align-items: center; gap: 4px;
+  }
+  .shape-btn.active { border-color: #2f6df6; color: #2f6df6; background: #f2f6ff; }
+  .shape-btn svg { width: 30px; height: 30px; }
+
+  /* 무대 */
+  .stage {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-bottom: 12px;
+  }
+  @media (max-width: 560px) { .stage { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: #fff; border-radius: 16px; padding: 10px;
+    box-shadow: 0 2px 8px rgba(20,40,80,.08);
+    position: relative;
+  }
+  .panel h2 {
+    font-size: 12px; font-weight: 800; color: #8b98a8;
+    text-align: center; margin-bottom: 4px; letter-spacing: .5px;
+  }
+  .panel canvas { display: block; width: 100%; aspect-ratio: 1; }
+
+  .badge {
+    position: absolute; top: 10px; right: 10px;
+    font-size: 11px; font-weight: 800; padding: 3px 9px;
+    border-radius: 20px; background: #e6edfb; color: #2f6df6;
+  }
+  .badge.flip { background: #ffeede; color: #d9781a; }
+
+  /* 상태 문장 */
+  .status {
+    background: #1b2432; color: #fff; border-radius: 12px;
+    padding: 11px 14px; font-size: 14px; font-weight: 700;
+    text-align: center; margin-bottom: 12px; line-height: 1.5;
+  }
+  .status b { color: #7fb0ff; }
+  .status.good { background: #16794a; }
+  .status.bad { background: #b4341f; }
+
+  /* 컨트롤 */
+  .controls { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .ctrl {
+    padding: 15px 8px; border: none; border-radius: 14px;
+    background: #fff; color: #1b2432; font-size: 14px; font-weight: 800;
+    font-family: inherit; cursor: pointer;
+    box-shadow: 0 2px 6px rgba(20,40,80,.1);
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    user-select: none;
+  }
+  .ctrl:active { transform: scale(.97); background: #eef2f7; }
+  .ctrl.primary { background: #2f6df6; color: #fff; }
+  .ctrl.ghost { background: #dfe6f0; color: #55636f; }
+  .ctrl .ico { font-size: 17px; }
+
+  /* 변환 기록 */
+  .log {
+    margin-top: 12px; background: #fff; border-radius: 14px; padding: 12px;
+    box-shadow: 0 2px 8px rgba(20,40,80,.08);
+  }
+  .log h3 { font-size: 12px; color: #8b98a8; font-weight: 800; margin-bottom: 8px; }
+  .log-list { display: flex; flex-wrap: wrap; gap: 6px; min-height: 26px; }
+  .chip {
+    font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 20px;
+    background: #eef2f7; color: #55636f;
+  }
+  .log-note { font-size: 12px; color: #8b98a8; margin-top: 8px; line-height: 1.5; }
+
+  /* 퀴즈 */
+  .quiz-info {
+    background: #fff3d6; border-radius: 12px; padding: 11px 14px;
+    font-size: 13px; font-weight: 700; color: #8a5a00;
+    margin-bottom: 12px; line-height: 1.5;
+  }
+  .score { font-size: 13px; color: #6b7888; font-weight: 700; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>도형 변환 탐구 교구</h1>
+    <div class="sub">돌리고 뒤집어서 모양을 맞춰 보세요</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" id="tabPractice">연습 모드</button>
+    <button class="tab" id="tabQuiz">퀴즈 모드</button>
+  </div>
+
+  <div class="shapes" id="shapeBar"></div>
+
+  <div class="quiz-info hidden" id="quizInfo"></div>
+
+  <div class="stage">
+    <div class="panel">
+      <h2 id="leftTitle">원본</h2>
+      <div class="badge" id="targetBadge">0°</div>
+      <canvas id="leftCanvas"></canvas>
+    </div>
+    <div class="panel">
+      <h2 id="rightTitle">조작</h2>
+      <div class="badge" id="opBadge">0°</div>
+      <canvas id="rightCanvas"></canvas>
+    </div>
+  </div>
+
+  <div class="status" id="status">도형을 골라 자유롭게 돌리고 뒤집어 보세요.</div>
+
+  <div class="controls">
+    <button class="ctrl" id="btnCCW"><span class="ico">⟲</span>반시계 90°</button>
+    <button class="ctrl" id="btnCW"><span class="ico">⟳</span>시계 90°</button>
+    <button class="ctrl" id="btnFlipLR"><span class="ico">⇄</span>좌우 뒤집기</button>
+    <button class="ctrl" id="btnFlipUD"><span class="ico">⇅</span>상하 뒤집기</button>
+    <button class="ctrl ghost" id="btnReset"><span class="ico">↺</span>초기화</button>
+    <button class="ctrl primary hidden" id="btnCheck"><span class="ico">✓</span>정답 확인</button>
+    <button class="ctrl primary hidden" id="btnNew"><span class="ico">↻</span>새 문제</button>
+  </div>
+
+  <div class="log" id="logBox">
+    <h3>변환 기록</h3>
+    <div class="log-list" id="logList"></div>
+    <div class="log-note" id="logNote"></div>
+  </div>
+
+</div>
+
+<script>
+/* ───────── 도형 정의 ───────── */
+const SHAPES = {
+  triangle: { name:'삼각형', n:3, rot:0 },
+  square:   { name:'정사각형', n:4, rot:45 },
+  pentagon: { name:'오각형', n:5, rot:0 },
+  hexagon:  { name:'육각형', n:6, rot:0 },
+  arrow:    { name:'화살표', points:[[0,-1],[0.9,0],[0,0.35],[0.35,0.35],[0.35,1],[-0.35,1],[-0.35,0.35],[-0.9,0.35]] }
+};
+
+function shapeVertices(key) {
+  const s = SHAPES[key];
+  if (s.points) return s.points.map(p => [p[0], p[1]]);
+  const out = [], n = s.n, base = (s.rot || 0) * Math.PI / 180;
+  for (let i = 0; i < n; i++) {
+    const a = base + (i / n) * Math.PI * 2 - Math.PI / 2;
+    out.push([Math.cos(a), Math.sin(a)]);
+  }
+  return out;
+}
+
+const LABELS = 'ABCDEFGH';
+
+/* ───────── 상태 ───────── */
+let currentShape = 'triangle';
+let mode = 'practice';
+
+// 조작 도형의 상태 = 회전각(deg) + 좌우반전 + 상하반전
+let op = { rot: 0, flipH: false, flipV: false };
+// 원본(목표) 도형의 상태
+let target = { rot: 0, flipH: false, flipV: false };
+
+let log = [];
+let score = { correct: 0, total: 0 };
+let justChecked = false;
+
+/* ───────── 변환 ───────── */
+// 좌표계: 수학 좌표(y 위쪽 양수). 화면 렌더 시 y를 뒤집는다.
+function normalize(st) {
+  // 뒤집기가 2번이면 회전으로 흡수, 회전각 0~359
+  let rot = ((st.rot % 360) + 360) % 360;
+  let fh = st.flipH, fv = st.flipV;
+  let mirrored = fh !== fv;   // 하나만 켜져 있으면 반전된 상태
+  return { rot, flipH: fh, flipV: fv, mirrored };
+}
+
+function applyTransform(pts, st) {
+  // 1) 좌우 반전 → x 부호
+  // 2) 상하 반전 → y 부호
+  // 3) 회전
+  const rad = st.rot * Math.PI / 180;
+  const cos = Math.cos(rad), sin = Math.sin(rad);
+  return pts.map(([x, y]) => {
+    let px = x, py = y;
+    if (st.flipH) px = -px;
+    if (st.flipV) py = -py;
+    return [px * cos - py * sin, px * sin + py * cos];
+  });
+}
+
+function rotate(st, deg) { return { rot: st.rot + deg, flipH: st.flipH, flipV: st.flipV }; }
+function flipLR(st) { return { rot: st.rot, flipH: !st.flipH, flipV: st.flipV }; }
+function flipUD(st) { return { rot: st.rot, flipH: st.flipH, flipV: !st.flipV }; }
+
+/* 두 상태가 '같은 모양'인지 판정 */
+function sameShape(a, b) {
+  const key = st => {
+    const n = normalize(st);
+    // 회전각 + 반전여부 조합을 정규화 키로
+    return n.rot + '|' + (n.mirrored ? 'm' : 'n');
+  };
+  return key(a) === key(b);
+}
+
+/* ───────── 렌더링 ───────── */
+function setupCanvas(canvas) {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  const size = Math.max(160, rect.width || 260);
+  canvas.width = size * dpr;
+  canvas.height = size * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { ctx, size };
+}
+
+function drawShape(canvas, st, opts) {
+  const { ctx, size } = setupCanvas(canvas);
+  const cx = size / 2, cy = size / 2;
+  const R = size * 0.32;
+
+  ctx.clearRect(0, 0, size, size);
+
+  // 격자
+  ctx.strokeStyle = '#eaeff6';
+  ctx.lineWidth = 1;
+  const step = size / 8;
+  for (let i = 1; i < 8; i++) {
+    ctx.beginPath(); ctx.moveTo(i * step, 0); ctx.lineTo(i * step, size); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, i * step); ctx.lineTo(size, i * step); ctx.stroke();
+  }
+
+  // 중심선
+  ctx.strokeStyle = '#dde5f0';
+  ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, size); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(size, cy); ctx.stroke();
+
+  const base = shapeVertices(currentShape);
+  const pts = applyTransform(base, st).map(([x, y]) => [cx + x * R, cy - y * R]);
+
+  ctx.beginPath();
+  pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+  ctx.closePath();
+
+  ctx.fillStyle = opts.fill;
+  ctx.fill();
+  ctx.strokeStyle = opts.stroke;
+  ctx.lineWidth = 3;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // 꼭짓점 + 라벨
+  pts.forEach(([x, y], i) => {
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = opts.stroke;
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    // 라벨은 점 안쪽으로
+    const dx = (cx - x) * 0.06, dy = (cy - y) * 0.06;
+    ctx.fillText(LABELS[i] || '?', x + dx, y + dy);
+  });
+}
+
+function render() {
+  const isQuiz = mode === 'quiz';
+
+  // 왼쪽 = 원본 / 목표
+  drawShape(document.getElementById('leftCanvas'), target,
+    isQuiz ? { fill: 'rgba(47,109,246,.18)', stroke: '#2f6df6' }
+           : { fill: 'rgba(150,164,180,.18)', stroke: '#96a4b4' });
+
+  // 오른쪽 = 조작
+  drawShape(document.getElementById('rightCanvas'), op,
+    { fill: 'rgba(217,120,26,.18)', stroke: '#d9781a' });
+
+  // 배지
+  const nT = normalize(target), nO = normalize(op);
+  const bT = document.getElementById('targetBadge');
+  const bO = document.getElementById('opBadge');
+  bT.textContent = nT.rot + '°' + (nT.mirrored ? ' · 반전' : '');
+  bO.textContent = nO.rot + '°' + (nO.mirrored ? ' · 반전' : '');
+  bT.className = 'badge' + (nT.mirrored ? ' flip' : '');
+  bO.className = 'badge' + (nO.mirrored ? ' flip' : '');
+
+  renderLog();
+}
+
+function renderLog() {
+  const list = document.getElementById('logList');
+  list.innerHTML = '';
+  if (!log.length) {
+    list.innerHTML = '<span class="chip">아직 변환 없음</span>';
+  } else {
+    log.forEach(txt => {
+      const s = document.createElement('span');
+      s.className = 'chip';
+      s.textContent = txt;
+      list.appendChild(s);
+    });
+  }
+  document.getElementById('logNote').textContent = logNote();
+}
+
+function logNote() {
+  const n = normalize(op);
+  const parts = [];
+  if (n.rot) parts.push('회전 ' + n.rot + '°');
+  if (n.mirrored) parts.push('반전된 상태 (좌우·상하 중 하나만 켜짐)');
+  if (!parts.length) return '초기 상태입니다. 뒤집기를 두 번 하면 원래대로 돌아오는지 확인해 보세요.';
+  return '현재 변환: ' + parts.join(' · ');
+}
+
+/* ───────── 조작 ───────── */
+function pushLog(text) {
+  log.push(text);
+  if (log.length > 12) log.shift();
+}
+
+function doRotate(deg) {
+  op = rotate(op, deg);
+  pushLog((deg > 0 ? '시계 ' : '반시계 ') + Math.abs(deg) + '°');
+  afterChange();
+}
+function doFlipLR() { op = flipLR(op); pushLog('좌우 뒤집기'); afterChange(); }
+function doFlipUD() { op = flipUD(op); pushLog('상하 뒤집기'); afterChange(); }
+function doReset()  { op = { rot:0, flipH:false, flipV:false }; log = []; afterChange(); }
+
+function afterChange() {
+  justChecked = false;
+  if (mode === 'quiz') {
+    setStatus('조작 도형을 맞춘 뒤 <b>정답 확인</b>을 눌러 보세요.', '');
+  } else {
+    setStatus('현재 변환을 살펴보고, 어떤 순서로 바뀌었는지 기록을 확인해 보세요.', '');
+  }
+  render();
+}
+
+function setStatus(html, cls) {
+  const el = document.getElementById('status');
+  el.innerHTML = html;
+  el.className = 'status' + (cls ? ' ' + cls : '');
+}
+
+/* ───────── 모드 전환 ───────── */
+function setMode(m) {
+  mode = m;
+  document.getElementById('tabPractice').classList.toggle('active', m === 'practice');
+  document.getElementById('tabQuiz').classList.toggle('active', m === 'quiz');
+
+  const isQuiz = m === 'quiz';
+  document.getElementById('leftTitle').textContent = isQuiz ? '목표' : '원본';
+  document.getElementById('quizInfo').classList.toggle('hidden', !isQuiz);
+  document.getElementById('btnCheck').classList.toggle('hidden', !isQuiz);
+  document.getElementById('btnNew').classList.toggle('hidden', !isQuiz);
+  document.getElementById('logBox').classList.toggle('hidden', isQuiz);
+
+  if (isQuiz) newQuestion(); else {
+    target = { rot:0, flipH:false, flipV:false };
+    op = { rot:0, flipH:false, flipV:false };
+    log = [];
+    setStatus('도형을 골라 자유롭게 돌리고 뒤집어 보세요.', '');
+    render();
+  }
+}
+
+/* ───────── 퀴즈 ───────── */
+const ROT_CHOICES = [90, 180, 270];
+
+function newQuestion() {
+  justChecked = false;
+  const rots = ROT_CHOICES.filter(r => true);
+  const r = rots[Math.floor(Math.random() * rots.length)];
+
+  // 목표 상태 만들기 (회전 위주 + 가끔 반전)
+  target = { rot: r, flipH: false, flipV: false };
+
+  // 조작은 항상 초기 상태에서 시작
+  op = { rot: 0, flipH: false, flipV: false };
+
+  document.getElementById('quizInfo').innerHTML =
+    '<b>목표</b>를 보고 같은 모양으로 만들어 보세요. ' +
+    '돌리기와 뒤집기를 조합하면 됩니다. <span class="score">점수 ' +
+    score.correct + ' / ' + score.total + '</span>';
+
+  setStatus('목표 도형과 같은 모양이 되도록 조작해 보세요.', '');
+  render();
+}
+
+function checkAnswer() {
+  const ok = sameShape(op, target);
+  score.total++;
+  if (ok) {
+    score.correct++;
+    setStatus('정답입니다! 목표와 같은 모양이에요. 🎉', 'good');
+  } else {
+    const nT = normalize(target), nO = normalize(op);
+    const sameShapeNoMirror = (nT.rot === nO.rot) && !nO.mirrored && !nT.mirrored;
+    if (sameShapeNoMirror) {
+      setStatus('거의 맞았어요. 모양은 같지만 각도를 다시 확인해 보세요.', 'bad');
+    } else if (nO.mirrored !== nT.mirrored) {
+      setStatus('모양은 비슷하지만 <b>뒤집힘 상태</b>가 달라요. 뒤집기를 한 번 더 생각해 보세요.', 'bad');
+    } else {
+      setStatus('아직 목표와 달라요. 회전 각도를 다시 맞춰 보세요.', 'bad');
+    }
+  }
+  document.getElementById('quizInfo').innerHTML =
+    '<b>목표</b>를 보고 같은 모양으로 만들어 보세요. ' +
+    '돌리기와 뒤집기를 조합하면 됩니다. <span class="score">점수 ' +
+    score.correct + ' / ' + score.total + '</span>';
+  justChecked = true;
+  render();
+}
+
+/* ───────── 도형 선택 바 ───────── */
+function svgFor(key) {
+  const pts = shapeVertices(key).map(([x, y]) => [15 + x * 11, 15 - y * 11]);
+  const d = pts.map(([x, y], i) => (i ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1)).join(' ') + ' Z';
+  return '<svg viewBox="0 0 30 30"><path d="' + d + '" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+}
+
+function buildShapeBar() {
+  const bar = document.getElementById('shapeBar');
+  bar.innerHTML = '';
+  Object.keys(SHAPES).forEach(key => {
+    const b = document.createElement('button');
+    b.className = 'shape-btn' + (key === currentShape ? ' active' : '');
+    b.innerHTML = svgFor(key) + '<span>' + SHAPES[key].name + '</span>';
+    b.onclick = () => {
+      currentShape = key;
+      document.querySelectorAll('.shape-btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      if (mode === 'quiz') newQuestion();
+      else { op = { rot:0, flipH:false, flipV:false }; log = []; render(); }
+    };
+    bar.appendChild(b);
+  });
+}
+
+/* ───────── 이벤트 ───────── */
+document.getElementById('btnCW').onclick = () => doRotate(90);
+document.getElementById('btnCCW').onclick = () => doRotate(-90);
+document.getElementById('btnFlipLR').onclick = doFlipLR;
+document.getElementById('btnFlipUD').onclick = doFlipUD;
+document.getElementById('btnReset').onclick = doReset;
+document.getElementById('btnCheck').onclick = checkAnswer;
+document.getElementById('btnNew').onclick = newQuestion;
+document.getElementById('tabPractice').onclick = () => setMode('practice');
+document.getElementById('tabQuiz').onclick = () => setMode('quiz');
+
+// 꾹 누르면 15° 세밀 회전
+function holdRotate(btnId, deg) {
+  const btn = document.getElementById(btnId);
+  let timer = null, interval = null;
+  const start = e => {
+    e.preventDefault();
+    timer = setTimeout(() => {
+      interval = setInterval(() => doRotate(deg > 0 ? 15 : -15), 110);
+    }, 450);
+  };
+  const end = () => { clearTimeout(timer); clearInterval(interval); };
+  btn.addEventListener('mousedown', start);
+  btn.addEventListener('touchstart', start, { passive:false });
+  ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev =>
+    btn.addEventListener(ev, end));
+}
+holdRotate('btnCW', 90);
+holdRotate('btnCCW', -90);
+
+window.addEventListener('resize', () => render());
+
+/* ───────── 시작 ───────── */
+buildShapeBar();
+setMode('practice');
+</script>
+</body>
+</html>
