@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="ko" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>디지털 도장 및 서명(사인) 제작기</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Korean Fonts & Signatures -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=Nanum+Gothic:wght@700&family=Nanum+Myeongjo:wght@700&family=Nanum+Pen+Script&family=Black+Han+Sans&family=Do+Hyeon&family=Jua&family=Gothic+A1:wght@700&family=Hi+Melody&family=Single+Day&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'media',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'nanum-myeongjo': ['"Nanum Myeongjo"', 'serif'],
+                        'gowun-batang': ['"Gowun Batang"', 'serif'],
+                        'nanum-gothic': ['"Nanum Gothic"', 'sans-serif'],
+                        'black-han-sans': ['"Black Han Sans"', 'sans-serif'],
+                        'do-hyeon': ['"Do Hyeon"', 'sans-serif'],
+                        'jua': ['"Jua"', 'sans-serif'],
+                        'nanum-pen': ['"Nanum Pen Script"', 'cursive'],
+                        'hi-melody': ['"Hi Melody"', 'cursive'],
+                        'single-day': ['"Single Day"', 'cursive'],
+                        'gothic-a1': ['"Gothic A1"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .font-nanum-myeongjo { font-family: 'Nanum Myeongjo', serif; }
+        .font-gowun-batang { font-family: 'Gowun Batang', serif; }
+        .font-nanum-gothic { font-family: 'Nanum Gothic', sans-serif; }
+        .font-black-han-sans { font-family: 'Black Han Sans', sans-serif; }
+        .font-do-hyeon { font-family: 'Do Hyeon', sans-serif; }
+        .font-jua { font-family: 'Jua', sans-serif; }
+        .font-nanum-pen { font-family: 'Nanum Pen Script', cursive; }
+        .font-hi-melody { font-family: 'Hi Melody', cursive; }
+        .font-single-day { font-family: 'Single Day', cursive; }
+        .font-gothic-a1 { font-family: 'Gothic A1', sans-serif; }
+        
+        /* Prevent pull-to-refresh on mobile canvas drawing */
+        canvas {
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-full flex flex-col font-sans antialiased selection:bg-red-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="bg-white dark:bg-slate-800 shadow-xs border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+                <div id="headerLogoIcon" class="w-9 h-9 rounded-xl bg-red-600 flex items-center justify-center text-white font-bold shadow-sm shadow-red-500/20 text-sm transition-colors">
+                    印
+                </div>
+                <div>
+                    <h1 class="text-base font-bold tracking-tight">디지털 도장 및 사인 제작기</h1>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">행정 서류·공문서용 투명 배경 도장 및 서명</p>
+                </div>
+            </div>
+            <div class="text-[11px] bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 px-2.5 py-1 rounded-full border border-red-200 dark:border-red-900 font-medium">
+                모바일 완벽 지원
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-4xl w-full mx-auto p-3 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+        
+        <!-- Preview & Download Section (Top on Mobile) -->
+        <section class="md:col-span-5 order-1 md:order-2 flex flex-col gap-4">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 sm:p-5 flex flex-col items-center justify-center space-y-4 sticky md:top-20">
+                <div class="w-full flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-2.5">
+                    <h2 class="text-sm font-semibold flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        실시간 투명 배경 미리보기
+                    </h2>
+                    <span id="previewModeBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300">도장 모드</span>
+                </div>
+
+                <!-- Checkerboard background container for transparency preview -->
+                <div id="previewContainer" class="w-full h-52 sm:h-56 rounded-2xl flex items-center justify-center relative shadow-inner overflow-hidden border border-slate-200 dark:border-slate-700 p-2"
+                     style="background-image: linear-gradient(45deg, #f1f5f9 25%, transparent 25%), linear-gradient(-45deg, #f1f5f9 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f1f5f9 75%), linear-gradient(-45deg, transparent 75%, #f1f5f9 75%); background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0px;">
+                    
+                    <!-- Canvas for rendering -->
+                    <canvas id="resultCanvas" width="400" height="400" class="max-w-full max-h-full object-contain cursor-pointer" title="결과물 미리보기"></canvas>
+                </div>
+
+                <p id="previewHelpText" class="text-[11px] text-slate-500 text-center leading-relaxed">
+                    한글(HWP), 워드, 공문서 결재란에 바로 삽입 가능한 <br><span class="font-semibold text-red-600">투명 배경 PNG 파일</span>로 저장됩니다.
+                </p>
+
+                <!-- Download & Share Buttons -->
+                <div class="w-full space-y-2">
+                    <button id="downloadBtn" class="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-md shadow-red-600/30 flex items-center justify-center gap-2 transition-all active:scale-95 text-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        이미지 다운로드 (PNG)
+                    </button>
+                    <button id="shareBtn" class="w-full py-2.5 px-4 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-xl flex items-center justify-center gap-2 transition-colors text-xs hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                        </svg>
+                        이미지 공유하기
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Quick Guide -->
+            <div class="bg-amber-50 dark:bg-slate-800/80 border border-amber-200 dark:border-amber-900/50 rounded-2xl p-3.5 text-xs text-amber-800 dark:text-amber-300 space-y-1">
+                <div class="font-bold flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    모바일 활용 팁
+                </div>
+                <p>• 상단 탭에서 <span class="font-bold">도장 모드</span>와 <span class="font-bold">사인(서명) 모드</span>를 자유롭게 오갈 수 있습니다.</p>
+                <p>• 사인 모드에서는 타이핑 변환과 직접 손가락으로 그리기 모두 지원됩니다.</p>
+            </div>
+        </section>
+
+        <!-- Controls Section (Bottom on Mobile) -->
+        <section class="md:col-span-7 order-2 md:order-1 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 sm:p-6 space-y-5">
+            
+            <!-- Mode Switcher Tabs -->
+            <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl">
+                <button type="button" id="modeStampBtn" class="py-2.5 px-3 rounded-lg text-xs font-bold transition-all bg-white dark:bg-slate-800 text-red-600 shadow-sm">
+                    🔲 도장 모드 (인장)
+                </button>
+                <button type="button" id="modeSignBtn" class="py-2.5 px-3 rounded-lg text-xs font-bold transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900">
+                    ✍️ 사인 / 서명 모드
+                </button>
+            </div>
+
+            <!-- ================= STAMP MODE CONTROLS ================= -->
+            <div id="stampControls" class="space-y-4">
+                <h2 class="text-sm font-semibold flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    도장 상세 설정
+                </h2>
+
+                <!-- Name Input -->
+                <div class="space-y-1.5">
+                    <label for="nameInput" class="block text-xs font-medium text-slate-700 dark:text-slate-300">
+                        도장 텍스트 <span class="text-slate-400 font-normal">(예: 홍길동인, 김철수)</span>
+                    </label>
+                    <div class="flex gap-2">
+                        <input type="text" id="nameInput" value="홍길동인" maxlength="5"
+                               class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm font-medium"
+                               placeholder="이름 입력">
+                        <button id="addInBtn" type="button" class="px-3.5 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition-colors whitespace-nowrap">
+                            '인' 붙이기
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Border Shape Selection -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300">외곽선 모양</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <label class="cursor-pointer flex items-center justify-center gap-1.5 p-2.5 rounded-xl border-2 transition-all border-red-500 bg-red-50/50 dark:bg-red-950/20 text-red-700 dark:text-red-300 text-xs font-medium shape-label" data-shape="circle">
+                            <input type="radio" name="borderShape" value="circle" checked class="sr-only">
+                            원형
+                        </label>
+                        <label class="cursor-pointer flex items-center justify-center gap-1.5 p-2.5 rounded-xl border-2 transition-all border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-700 dark:text-slate-300 text-xs font-medium shape-label" data-shape="square">
+                            <input type="radio" name="borderShape" value="square" class="sr-only">
+                            사각형
+                        </label>
+                        <label class="cursor-pointer flex items-center justify-center gap-1.5 p-2.5 rounded-xl border-2 transition-all border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-700 dark:text-slate-300 text-xs font-medium shape-label" data-shape="none">
+                            <input type="radio" name="borderShape" value="none" class="sr-only">
+                            테두리 없음
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Font Selection for Stamp -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300">도장 폰트 (저작권 프리)</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <button type="button" data-font="Nanum Myeongjo" class="stamp-font-btn p-2 rounded-xl border-2 border-red-500 bg-red-50/50 dark:bg-red-950/20 text-red-700 dark:text-red-300 text-xs font-bold font-nanum-myeongjo transition-all">
+                            나눔명조
+                        </button>
+                        <button type="button" data-font="Gowun Batang" class="stamp-font-btn p-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-700 dark:text-slate-300 text-xs font-bold font-gowun-batang transition-all">
+                            고운바탕
+                        </button>
+                        <button type="button" data-font="Nanum Gothic" class="stamp-font-btn p-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-700 dark:text-slate-300 text-xs font-bold font-nanum-gothic transition-all">
+                            나눔고딕
+                        </button>
+                        <button type="button" data-font="Black Han Sans" class="stamp-font-btn p-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-700 dark:text-slate-300 text-xs font-bold font-black-han-sans transition-all">
+                            검은고딕
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= SIGNATURE MODE CONTROLS ================= -->
+            <div id="signControls" class="space-y-4 hidden">
+                <h2 class="text-sm font-semibold flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                    사인(서명) 제작 설정
+                </h2>
+
+                <!-- Sub-mode: Typing to Signature vs Direct Drawing -->
+                <div class="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl">
+                    <button type="button" id="signTypeTab" class="py-2 px-3 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 text-red-600 shadow-sm transition-all">
+                        ⌨️ 텍스트 입력 변환
+                    </button>
+                    <button type="button" id="signDrawTab" class="py-2 px-3 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all">
+                        ✍️ 직접 손으로 쓰기
+                    </button>
+                </div>
+
+                <!-- Option A: Typing Input -->
+                <div id="signTypeContainer" class="space-y-3">
+                    <div class="space-y-1.5">
+                        <label for="signNameInput" class="block text-xs font-medium text-slate-700 dark:text-slate-300">
+                            사인할 성함 또는 텍스트
+                        </label>
+                        <input type="text" id="signNameInput" value="홍길동" maxlength="10"
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm font-medium"
+                               placeholder="예: 홍길동">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-medium text-slate-700 dark:text-slate-300">유려한 서명 필기체 스타일 선택</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            <button type="button" data-font="Nanum Pen Script" class="sign-font-btn p-2.5 rounded-xl border-2 border-red-500 bg-red-50/50 dark:bg-red-950/20 text-red-700 dark:text-red-300 text-sm font-bold font-nanum-pen transition-all">
+                                나눔 펜글씨체
+                            </button>
+                            <button type="button" data-font="Hi Melody" class="sign-font-btn p-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-700 dark:text-slate-300 text-sm font-bold font-hi-melody transition-all">
+                                하이멜로디체
+                            </button>
+                            <button type="button" data-font="Single Day" class="sign-font-btn p-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-700 dark:text-slate-300 text-sm font-bold font-single-day transition-all">
+                                싱글데이체
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Option B: Direct Drawing Pad -->
+                <div id="signDrawContainer" class="space-y-3 hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-medium text-slate-700 dark:text-slate-300">마우스나 손가락으로 자유롭게 서명하세요</span>
+                        <div class="flex gap-1.5">
+                            <button type="button" id="undoPadBtn" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-lg text-[11px] font-medium transition-colors">
+                                되돌리기
+                            </button>
+                            <button type="button" id="clearPadBtn" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-lg text-[11px] font-medium transition-colors">
+                                전체 지우기
+                            </button>
+                        </div>
+                    </div>
+                    <div class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl overflow-hidden bg-white dark:bg-slate-900 relative">
+                        <canvas id="padCanvas" width="400" height="200" class="w-full h-40 cursor-crosshair touch-none"></canvas>
+                        <div class="absolute bottom-2 right-2 text-[10px] text-slate-400 pointer-events-none">서명 캔버스 영역</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Common Controls: Color & Intensity -->
+            <div class="space-y-4 pt-2 border-t border-slate-100 dark:border-slate-700">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300">잉크/펜 색상 선택</label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button type="button" data-color="#1A237E" class="color-btn p-2 rounded-xl border-2 border-indigo-900 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-900 dark:text-indigo-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all">
+                            <span class="w-3 h-3 rounded-full bg-[#1A237E] inline-block shadow-xs"></span> 서명용 청색
+                        </button>
+                        <button type="button" data-color="#D32F2F" class="color-btn p-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-all">
+                            <span class="w-3 h-3 rounded-full bg-[#D32F2F] inline-block shadow-xs"></span> 표준홍색
+                        </button>
+                        <button type="button" data-color="#212121" class="color-btn p-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-all">
+                            <span class="w-3 h-3 rounded-full bg-[#212121] inline-block shadow-xs"></span> 진한흑색
+                        </button>
+                        <button type="button" data-color="#880E4F" class="color-btn p-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-all">
+                            <span class="w-3 h-3 rounded-full bg-[#880E4F] inline-block shadow-xs"></span> 버건디
+                        </button>
+                    </div>
+                </div>
+
+                <div id="roughEffectGroup" class="flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-medium text-slate-700 dark:text-slate-300">날인 질감 (아날로그 번짐 효과)</span>
+                        <p class="text-[10px] text-slate-500">실제 도장처럼 미세한 마모 및 번짐 표현</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="roughToggle" checked class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-600"></div>
+                    </label>
+                </div>
+
+                <div class="space-y-1">
+                    <div class="flex justify-between text-[11px] text-slate-600 dark:text-slate-400">
+                        <span>색상 투명도 / 농도</span>
+                        <span id="opacityValue">95%</span>
+                    </div>
+                    <input type="range" id="inkOpacity" min="70" max="100" value="95" class="w-full accent-red-600 cursor-pointer">
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Message Box Modal -->
+    <div id="msgModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-sm w-full shadow-xl border border-slate-200 dark:border-slate-700 text-center space-y-3">
+            <div id="msgIcon" class="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto text-base font-bold">!</div>
+            <p id="msgText" class="text-xs font-medium text-slate-700 dark:text-slate-200">알림 메시지 내용입니다.</p>
+            <button id="msgCloseBtn" class="w-full py-2 bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 text-white font-medium rounded-xl text-xs transition-colors">
+                확인
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center py-5 text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-200 dark:border-slate-800 mt-auto">
+        &copy; 디지털 도장 및 서명 제작기. 모바일 최적화 단일 HTML 앱.
+    </footer>
+
+    <!-- Application Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // State
+            let state = {
+                mode: 'stamp', // 'stamp' or 'sign'
+                signSubMode: 'type', // 'type' or 'draw'
+                
+                // Stamp options
+                stampText: '홍길동인',
+                stampShape: 'circle', // 'circle', 'square', 'none'
+                stampFont: 'Nanum Myeongjo',
+                
+                // Sign options
+                signText: '홍길동',
+                signFont: 'Nanum Pen Script',
+                
+                // Common options
+                color: '#1A237E', // Default signature blue
+                rough: true,
+                opacity: 0.95
+            };
+
+            // DOM Elements
+            const headerLogoIcon = document.getElementById('headerLogoIcon');
+            const previewModeBadge = document.getElementById('previewModeBadge');
+            const previewHelpText = document.getElementById('previewHelpText');
+            const resultCanvas = document.getElementById('resultCanvas');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const shareBtn = document.getElementById('shareBtn');
+
+            // Mode Tabs
+            const modeStampBtn = document.getElementById('modeStampBtn');
+            const modeSignBtn = document.getElementById('modeSignBtn');
+            const stampControls = document.getElementById('stampControls');
+            const signControls = document.getElementById('signControls');
+
+            // Stamp Controls
+            const nameInput = document.getElementById('nameInput');
+            const addInBtn = document.getElementById('addInBtn');
+            const shapeLabels = document.querySelectorAll('.shape-label');
+            const stampFontButtons = document.querySelectorAll('.stamp-font-btn');
+
+            // Sign Controls
+            const signTypeTab = document.getElementById('signTypeTab');
+            const signDrawTab = document.getElementById('signDrawTab');
+            const signTypeContainer = document.getElementById('signTypeContainer');
+            const signDrawContainer = document.getElementById('signDrawContainer');
+            const signNameInput = document.getElementById('signNameInput');
+            const signFontButtons = document.querySelectorAll('.sign-font-btn');
+            const padCanvas = document.getElementById('padCanvas');
+            const clearPadBtn = document.getElementById('clearPadBtn');
+            const undoPadBtn = document.getElementById('undoPadBtn');
+
+            // Common Controls
+            const colorButtons = document.querySelectorAll('.color-btn');
+            const roughToggle = document.getElementById('roughToggle');
+            const inkOpacityRange = document.getElementById('inkOpacity');
+            const opacityValue = document.getElementById('opacityValue');
+
+            // Modal
+            const msgModal = document.getElementById('msgModal');
+            const msgText = document.getElementById('msgText');
+            const msgCloseBtn = document.getElementById('msgCloseBtn');
+
+            function showMessage(text) {
+                msgText.textContent = text;
+                msgModal.classList.remove('hidden');
+            }
+            msgCloseBtn.addEventListener('click', () => msgModal.classList.add('hidden'));
+
+            if (navigator.share) {
+                shareBtn.classList.remove('hidden');
+            }
+
+            // Drawing Pad Setup & History stack for Undo
+            const padCtx = padCanvas.getContext('2d');
+            let isDrawing = false;
+            let drawHistory = [];
+
+            function savePadState() {
+                drawHistory.push(padCtx.getImageData(0, 0, padCanvas.width, padCanvas.height));
+                if (drawHistory.length > 20) drawHistory.shift();
+            }
+
+            function initPad() {
+                padCtx.strokeStyle = state.color;
+                padCtx.lineWidth = 4;
+                padCtx.lineCap = 'round';
+                padCtx.lineJoin = 'round';
+                savePadState();
+            }
+            initPad();
+
+            function getTouchPos(canvasDom, touchEvent) {
+                const rect = canvasDom.getBoundingClientRect();
+                return {
+                    x: touchEvent.touches[0].clientX - rect.left,
+                    y: touchEvent.touches[0].clientY - rect.top
+                };
+            }
+
+            padCanvas.addEventListener('mousedown', (e) => {
+                isDrawing = true;
+                padCtx.beginPath();
+                padCtx.moveTo(e.offsetX, e.offsetY);
+            });
+            padCanvas.addEventListener('mousemove', (e) => {
+                if (!isDrawing) return;
+                padCtx.lineTo(e.offsetX, e.offsetY);
+                padCtx.stroke();
+            });
+            window.addEventListener('mouseup', () => {
+                if (isDrawing) {
+                    isDrawing = false;
+                    savePadState();
+                    render();
+                }
+            });
+
+            padCanvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                isDrawing = true;
+                const pos = getTouchPos(padCanvas, e);
+                padCtx.beginPath();
+                padCtx.moveTo(pos.x, pos.y);
+            });
+            padCanvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (!isDrawing) return;
+                const pos = getTouchPos(padCanvas, e);
+                padCtx.lineTo(pos.x, pos.y);
+                padCtx.stroke();
+            });
+            padCanvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                if (isDrawing) {
+                    isDrawing = false;
+                    savePadState();
+                    render();
+                }
+            });
+
+            clearPadBtn.addEventListener('click', () => {
+                padCtx.clearRect(0, 0, padCanvas.width, padCanvas.height);
+                drawHistory = [];
+                savePadState();
+                render();
+            });
+
+            undoPadBtn.addEventListener('click', () => {
+                if (drawHistory.length > 1) {
+                    drawHistory.pop(); // remove current state
+                    const prevState = drawHistory[drawHistory.length - 1];
+                    padCtx.putImageData(prevState, 0, 0);
+                    render();
+                }
+            });
+
+            // Mode Switching
+            modeStampBtn.addEventListener('click', () => {
+                state.mode = 'stamp';
+                modeStampBtn.className = 'py-2.5 px-3 rounded-lg text-xs font-bold transition-all bg-white dark:bg-slate-800 text-red-600 shadow-sm';
+                modeSignBtn.className = 'py-2.5 px-3 rounded-lg text-xs font-bold transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900';
+                stampControls.classList.remove('hidden');
+                signControls.classList.add('hidden');
+                previewModeBadge.textContent = '도장 모드';
+                previewModeBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300';
+                headerLogoIcon.textContent = '印';
+                headerLogoIcon.className = 'w-9 h-9 rounded-xl bg-red-600 flex items-center justify-center text-white font-bold shadow-sm shadow-red-500/20 text-sm transition-colors';
+                render();
+            });
+
+            modeSignBtn.addEventListener('click', () => {
+                state.mode = 'sign';
+                modeSignBtn.className = 'py-2.5 px-3 rounded-lg text-xs font-bold transition-all bg-white dark:bg-slate-800 text-indigo-600 shadow-sm';
+                modeStampBtn.className = 'py-2.5 px-3 rounded-lg text-xs font-bold transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900';
+                stampControls.classList.add('hidden');
+                signControls.classList.remove('hidden');
+                previewModeBadge.textContent = '사인 모드';
+                previewModeBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300';
+                headerLogoIcon.textContent = '署';
+                headerLogoIcon.className = 'w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold shadow-sm shadow-indigo-500/20 text-sm transition-colors';
+                
+                if (state.color === '#D32F2F') {
+                    state.color = '#1A237E';
+                    updateColorButtonActive('#1A237E');
+                }
+                render();
+            });
+
+            signTypeTab.addEventListener('click', () => {
+                state.signSubMode = 'type';
+                signTypeTab.className = 'py-2 px-3 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 text-red-600 shadow-sm transition-all';
+                signDrawTab.className = 'py-2 px-3 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all';
+                signTypeContainer.classList.remove('hidden');
+                signDrawContainer.classList.add('hidden');
+                render();
+            });
+
+            signDrawTab.addEventListener('click', () => {
+                state.signSubMode = 'draw';
+                signDrawTab.className = 'py-2 px-3 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 text-red-600 shadow-sm transition-all';
+                signTypeTab.className = 'py-2 px-3 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all';
+                signDrawContainer.classList.remove('hidden');
+                signTypeContainer.classList.add('hidden');
+                render();
+            });
+
+            addInBtn.addEventListener('click', () => {
+                let current = nameInput.value.trim();
+                if (!current) nameInput.value = '홍길동인';
+                else if (!current.endsWith('인')) nameInput.value = current + '인';
+                else nameInput.value = current;
+                state.stampText = nameInput.value;
+                render();
+            });
+            nameInput.addEventListener('input', (e) => {
+                state.stampText = e.target.value.trim() || '홍길동인';
+                render();
+            });
+
+            shapeLabels.forEach(label => {
+                label.addEventListener('click', () => {
+                    shapeLabels.forEach(l => {
+                        l.classList.remove('border-red-500', 'bg-red-50/50', 'dark:bg-red-950/20', 'text-red-700', 'dark:text-red-300');
+                        l.classList.add('border-slate-200', 'dark:border-slate-700', 'text-slate-700', 'dark:text-slate-300');
+                    });
+                    label.classList.add('border-red-500', 'bg-red-50/50', 'dark:bg-red-950/20', 'text-red-700', 'dark:text-red-300');
+                    label.classList.remove('border-slate-200', 'dark:border-slate-700', 'text-slate-700', 'dark:text-slate-300');
+                    
+                    const radio = label.querySelector('input');
+                    radio.checked = true;
+                    state.stampShape = radio.value;
+                    render();
+                });
+            });
+
+            stampFontButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    stampFontButtons.forEach(b => {
+                        b.classList.remove('border-red-500', 'bg-red-50/50', 'dark:bg-red-950/20', 'text-red-700', 'dark:text-red-300');
+                        b.classList.add('border-slate-200', 'dark:border-slate-700', 'text-slate-700', 'dark:text-slate-300');
+                    });
+                    btn.classList.add('border-red-500', 'bg-red-50/50', 'dark:bg-red-950/20', 'text-red-700', 'dark:text-red-300');
+                    btn.classList.remove('border-slate-200', 'dark:border-slate-700', 'text-slate-700', 'dark:text-slate-300');
+                    
+                    state.stampFont = btn.getAttribute('data-font');
+                    render();
+                });
+            });
+
+            signNameInput.addEventListener('input', (e) => {
+                state.signText = e.target.value.trim() || '홍길동';
+                render();
+            });
+
+            signFontButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    signFontButtons.forEach(b => {
+                        b.classList.remove('border-red-500', 'bg-red-50/50', 'dark:bg-red-950/20', 'text-red-700', 'dark:text-red-300');
+                        b.classList.add('border-slate-200', 'dark:border-slate-700', 'text-slate-700', 'dark:text-slate-300');
+                    });
+                    btn.classList.add('border-red-500', 'bg-red-50/50', 'dark:bg-red-950/20', 'text-red-700', 'dark:text-red-300');
+                    btn.classList.remove('border-slate-200', 'dark:border-slate-700', 'text-slate-700', 'dark:text-slate-300');
+                    
+                    state.signFont = btn.getAttribute('data-font');
+                    render();
+                });
+            });
+
+            function updateColorButtonActive(targetColor) {
+                colorButtons.forEach(b => {
+                    const col = b.getAttribute('data-color');
+                    if (col === targetColor) {
+                        b.className = 'color-btn p-2 rounded-xl border-2 border-slate-900 dark:border-slate-100 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs';
+                    } else {
+                        b.className = 'color-btn p-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-all';
+                    }
+                });
+            }
+
+            colorButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    state.color = btn.getAttribute('data-color');
+                    updateColorButtonActive(state.color);
+                    padCtx.strokeStyle = state.color;
+                    render();
+                });
+            });
+
+            roughToggle.addEventListener('change', (e) => {
+                state.rough = e.target.checked;
+                render();
+            });
+
+            inkOpacityRange.addEventListener('input', (e) => {
+                state.opacity = e.target.value / 100;
+                opacityValue.textContent = e.target.value + '%';
+                render();
+            });
+
+            function render() {
+                if (state.mode === 'stamp') {
+                    renderStamp();
+                } else {
+                    renderSign();
+                }
+            }
+
+            function renderStamp() {
+                const ctx = resultCanvas.getContext('2d');
+                const width = resultCanvas.width;
+                const height = resultCanvas.height;
+
+                ctx.clearRect(0, 0, width, height);
+                ctx.save();
+                ctx.globalAlpha = state.opacity;
+                ctx.strokeStyle = state.color;
+                ctx.fillStyle = state.color;
+
+                const centerX = width / 2;
+                const centerY = height / 2;
+
+                if (state.stampShape !== 'none') {
+                    ctx.lineWidth = 14;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+
+                    if (state.stampShape === 'circle') {
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, 175, 0, Math.PI * 2);
+                        ctx.stroke();
+
+                        if (state.stampText.length >= 4) {
+                            ctx.lineWidth = 4;
+                            ctx.beginPath();
+                            ctx.arc(centerX, centerY, 160, 0, Math.PI * 2);
+                            ctx.stroke();
+                        }
+                    } else if (state.stampShape === 'square') {
+                        const size = 350;
+                        const x = (width - size) / 2;
+                        const y = (height - size) / 2;
+                        const radius = 24;
+
+                        ctx.beginPath();
+                        ctx.roundRect(x, y, size, size, radius);
+                        ctx.stroke();
+
+                        ctx.lineWidth = 4;
+                        ctx.beginPath();
+                        ctx.roundRect(x + 12, y + 12, size - 24, size - 24, radius - 4);
+                        ctx.stroke();
+                    }
+                }
+
+                let text = state.stampText;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                let fontSize = 110;
+                if (text.length === 2) fontSize = 140;
+                else if (text.length === 3) fontSize = 110;
+                else if (text.length >= 4) fontSize = 85;
+
+                ctx.font = `bold ${fontSize}px "${state.stampFont}", sans-serif`;
+
+                if (text.length === 4 && state.stampShape === 'square') {
+                    let halfSize = fontSize * 0.55;
+                    ctx.fillText(text[0], centerX - halfSize/2, centerY - halfSize/2);
+                    ctx.fillText(text[1], centerX + halfSize/2, centerY - halfSize/2);
+                    ctx.fillText(text[2], centerX - halfSize/2, centerY + halfSize/2);
+                    ctx.fillText(text[3], centerX + halfSize/2, centerY + halfSize/2);
+                } else {
+                    ctx.fillText(text, centerX, centerY + 5);
+                }
+
+                if (state.rough) {
+                    applyRoughEffect(ctx, width, height, 0.035);
+                }
+
+                ctx.restore();
+            }
+
+            function renderSign() {
+                const ctx = resultCanvas.getContext('2d');
+                const width = resultCanvas.width;
+                const height = resultCanvas.height;
+
+                ctx.clearRect(0, 0, width, height);
+                ctx.save();
+                ctx.globalAlpha = state.opacity;
+
+                if (state.signSubMode === 'type') {
+                    ctx.fillStyle = state.color;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    
+                    let fontSize = 110;
+                    if (state.signText.length > 5) fontSize = 85;
+                    if (state.signText.length > 8) fontSize = 65;
+
+                    ctx.font = `bold ${fontSize}px "${state.signFont}", sans-serif`;
+                    
+                    ctx.translate(width / 2, height / 2);
+                    ctx.rotate(-0.04);
+                    ctx.fillText(state.signText, 0, 0);
+                    ctx.restore();
+
+                    if (state.rough) {
+                        ctx.save();
+                        ctx.globalAlpha = state.opacity;
+                        applyRoughEffect(ctx, width, height, 0.02);
+                        ctx.restore();
+                    }
+                } else {
+                    ctx.drawImage(padCanvas, 0, 0, padCanvas.width, padCanvas.height, 0, 0, width, height);
+                    ctx.restore();
+                }
+            }
+
+            function applyRoughEffect(ctx, width, height, threshold) {
+                const imgData = ctx.getImageData(0, 0, width, height);
+                const data = imgData.data;
+
+                for (let i = 0; i < data.length; i += 4) {
+                    if (data[i + 3] > 40) {
+                        let rand = Math.sin(i * 12.9898) * 43758.5453;
+                        let noise = rand - Math.floor(rand);
+                        
+                        if (noise < threshold) {
+                            data[i + 3] = Math.floor(data[i + 3] * 0.15);
+                        }
+                    }
+                }
+                ctx.putImageData(imgData, 0, 0);
+            }
+
+            downloadBtn.addEventListener('click', () => {
+                const link = document.createElement('a');
+                const prefix = state.mode === 'stamp' ? '디지털도장' : '서명사인';
+                const identifier = state.mode === 'stamp' ? state.stampText : state.signText;
+                link.download = `${prefix}_${identifier}.png`;
+                link.href = resultCanvas.toDataURL('image/png');
+                link.click();
+            });
+
+            shareBtn.addEventListener('click', async () => {
+                if (!navigator.share) return;
+                const prefix = state.mode === 'stamp' ? '디지털도장' : '서명사인';
+                const identifier = state.mode === 'stamp' ? state.stampText : state.signText;
+                resultCanvas.toBlob(async (blob) => {
+                    const file = new File([blob], `${prefix}_${identifier}.png`, { type: 'image/png' });
+                    try {
+                        await navigator.share({
+                            title: '디지털 도장 및 서명',
+                            text: `행정 서류용 ${prefix} (${identifier})`,
+                            files: [file]
+                        });
+                    } catch (err) {
+                        if (err.name !== 'AbortError') {
+                            console.error(err);
+                        }
+                    }
+                }, 'image/png');
+            });
+
+            setTimeout(() => {
+                updateColorButtonActive(state.color);
+                render();
+            }, 100);
+
+            if (document.fonts) {
+                document.fonts.ready.then(() => {
+                    render();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
