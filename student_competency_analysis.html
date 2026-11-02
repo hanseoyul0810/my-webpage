@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>학생 역량 성장 분석기</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;color:#263449;background:#f4f8fc}
+*{box-sizing:border-box}
+body{margin:0;padding:24px 14px}
+.app{max-width:980px;margin:auto}
+header{margin-bottom:20px}
+h1{font-size:25px;margin:0 0 6px}
+.sub,.hint{color:#68788d;font-size:13px}
+.panel{background:white;border:1px solid #e1e9f2;border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 3px 12px #243b5308}
+h2{font-size:17px;margin:0 0 14px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:#f2f6fb;padding:14px;border-radius:12px}
+.stat span{font-size:12px;color:#66758a}
+.stat strong{display:block;font-size:27px;margin:4px 0 0;font-variant-numeric:tabular-nums}
+.blue{color:#287bd2}.red{color:#df5964}.green{color:#16845d}
+.chartbox{background:#f7f9fc;border-radius:12px;padding:10px}
+svg{width:100%;height:auto;display:block}
+.legend{display:flex;gap:18px;font-size:13px;margin:8px 0 12px;flex-wrap:wrap}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+button{border:1px solid #d5dfeb;background:white;border-radius:9px;padding:9px 13px;cursor:pointer;font-size:13px;color:#34445a}
+button.primary{background:#287bd2;color:white;border-color:#287bd2}
+button:hover{filter:brightness(.97)}
+/* 헤더와 입력 행에 동일한 4열 그리드를 적용해 제목과 입력칸을 정확히 정렬 */
+.grid-head,.metric{display:grid;grid-template-columns:minmax(0,1fr) 100px 100px 34px;gap:8px;align-items:center}
+.grid-head{padding:0 2px 8px;font-size:12px;color:#66758a}
+.metric{margin:7px 0}
+.metric input{width:100%;min-width:0;border:1px solid #d9e2ed;border-radius:8px;padding:9px 7px;font:inherit;font-size:13px;background:#fff;color:#263449}
+.metric input[type=number]{text-align:center;font-variant-numeric:tabular-nums}
+.metric button{padding:7px 0;color:#b34b55}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:480px}
+th,td{padding:10px 8px;text-align:right;border-bottom:1px solid #edf1f6}
+th:first-child,td:first-child{text-align:left}
+th{color:#65758a;font-weight:600;background:#f8fafc}
+.positive{color:#16845d;font-weight:700}.negative{color:#d35460;font-weight:700}
+.barline{height:8px;background:#edf1f6;border-radius:20px;overflow:hidden;min-width:75px}
+.barline span{display:block;height:100%;border-radius:20px}
+.summary{font-size:14px;line-height:1.85}
+.summary p{margin:6px 0}
+.note{font-size:12px;color:#718096;line-height:1.6}
+@media(max-width:520px){
+ body{padding:16px 10px}.panel{padding:13px}.stats{gap:7px}.stat{padding:10px}.stat strong{font-size:21px}
+ .grid-head,.metric{grid-template-columns:minmax(0,1fr) 72px 72px 28px;gap:5px}
+ .metric input{padding:8px 4px;font-size:12px}
+ h1{font-size:22px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<h1>학생 역량 성장 분석</h1>
+<div class="sub">사전평가와 사후평가를 레이더 차트로 비교하고, 전체 평균을 기준으로 영역별 결과를 분석합니다.</div>
+</header>
+
+<section class="stats" aria-label="평가 평균 요약">
+<div class="stat"><span>사전평가 평균</span><strong class="blue" id="beforeAvg">47.2점</strong></div>
+<div class="stat"><span>사후평가 평균</span><strong class="red" id="afterAvg">77.8점</strong></div>
+<div class="stat"><span>평균 향상 점수</span><strong class="green" id="avgDiff">+30.6점</strong></div>
+</section>
+
+<section class="panel">
+<h2>① 역량 레이더 차트</h2>
+<div class="legend"><span><i class="dot" style="background:#3688e8"></i>사전평가</span><span><i class="dot" style="background:#e65b65"></i>사후평가</span><span><i class="dot" style="background:#8b96a5"></i>전체 평균 기준선</span></div>
+<div class="chartbox"><svg id="radar" viewBox="0 0 500 430" role="img" aria-label="사전평가와 사후평가 레이더 차트"></svg></div>
+<div class="note">바깥쪽일수록 높은 점수입니다. 점선 원은 각 평가의 전체 평균을 나타내며, 각 영역 점수가 평균보다 높은지 낮은지 비교할 수 있습니다.</div>
+<div class="controls"><button class="primary" id="save">차트 PNG 저장</button><button id="reset">초기 데이터 복원</button></div>
+</section>
+
+<section class="panel">
+<h2>② 평가 점수 입력 및 수정</h2>
+<div class="grid-head">
+<div>역량 영역</div><div class="blue" style="text-align:center;font-weight:700">사전평가</div><div class="red" style="text-align:center;font-weight:700">사후평가</div><div></div>
+</div>
+<div id="metrics"></div>
+<button id="add" style="width:100%;margin-top:9px">＋ 새로운 역량 지표 추가</button>
+<p class="note">각 점수는 0~100점으로 입력할 수 있습니다. 영역명이나 점수를 수정하면 차트와 분석 결과가 자동으로 갱신됩니다.</p>
+</section>
+
+<section class="panel">
+<h2>③ 영역별 점수와 전체 평균 비교</h2>
+<p class="note" style="margin-top:-7px">각 영역의 사전·사후 점수를 해당 평가의 전체 평균과 비교합니다. 평균보다 높으면 +, 낮으면 −로 표시됩니다.</p>
+<div class="table-wrap">
+<table>
+<thead><tr><th>역량 영역</th><th>사전 점수</th><th>사전 평균 대비</th><th>사후 점수</th><th>사후 평균 대비</th><th>향상 점수</th></tr></thead>
+<tbody id="comparison"></tbody>
+</table>
+</div>
+</section>
+
+<section class="panel">
+<h2>④ 자동 분석 요약</h2>
+<div id="summary" class="summary" aria-live="polite"></div>
+<button id="copy" style="margin-top:10px">분석 요약 복사</button>
+</section>
+<p class="note">※ 본 결과는 입력된 자기평가 점수를 바탕으로 한 기술적 비교입니다. 점수 변화만으로 실제 역량의 향상 원인을 단정할 수는 없습니다.</p>
+</div>
+<script>
+(()=>{
+const initial=[
+{name:"정보검색 능력",before:45,after:78},
+{name:"비판적 사고",before:38,after:71},
+{name:"디지털 도구 활용",before:52,after:85},
+{name:"협업 능력",before:60,after:80},
+{name:"창의적 문제해결",before:41,after:75}
+];
+let data=initial.map(x=>({...x}));
+const $=id=>document.getElementById(id);
+const mean=k=>data.length?data.reduce((s,d)=>s+d[k],0)/data.length:0;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const signed=n=>(n>0?'+':'')+n.toFixed(1);
+function summaryLines(){
+ if(!data.length)return ['평가 영역을 추가하면 분석 결과가 표시됩니다.'];
+ const delta=mean('after')-mean('before');
+ const changes=data.map(d=>({...d,diff:d.after-d.before}));
+ const best=[...changes].sort((a,b)=>b.diff-a.diff)[0];
+ const weakest=[...changes].sort((a,b)=>a.after-b.after)[0];
+ const improved=changes.filter(d=>d.diff>0).length;
+ return [
+ `사전평가 평균은 ${mean('before').toFixed(1)}점, 사후평가 평균은 ${mean('after').toFixed(1)}점으로 전체 평균이 ${signed(delta)}점 변화했습니다.`,
+ `전체 ${data.length}개 영역 중 ${improved}개 영역에서 점수가 향상되었습니다.`,
+ `가장 크게 향상된 영역은 ${best.name}으로 ${signed(best.diff)}점 변화했습니다.`,
+ `사후평가에서 가장 높은 점수를 받은 영역은 ${[...data].sort((a,b)=>b.after-a.after)[0].name}(${Math.max(...data.map(d=>d.after))}점)이며, 가장 낮은 영역은 ${weakest.name}(${weakest.after}점)입니다.`,
+ `사후평가 평균(${mean('after').toFixed(1)}점)보다 낮은 영역은 ${data.filter(d=>d.after<mean('after')).map(d=>d.name).join(', ')||'없습니다'}입니다. 해당 영역을 우선적인 보완 대상으로 검토할 수 있습니다.`
+ ];
+}
+function draw(){
+ const svg=$('radar'),n=data.length;
+ if(n<3){svg.innerHTML='<text x="250" y="210" text-anchor="middle" fill="#64748b">레이더 차트는 3개 이상의 영역이 필요합니다.</text>';return;}
+ const cx=250,cy=205,R=137,labelR=174;
+ const point=(i,r)=>{const a=-Math.PI/2+i*2*Math.PI/n;return [cx+Math.cos(a)*r,cy+Math.sin(a)*r];};
+ let out='';
+ for(let v=20;v<=100;v+=20){
+  const pts=Array.from({length:n},(_,i)=>point(i,R*v/100).join(',')).join(' ');
+  out+=`<polygon points="${pts}" fill="none" stroke="#aeb9c7" stroke-opacity=".65"/>`;
+  const p=point(0,R*v/100);out+=`<text x="${p[0]+5}" y="${p[1]-4}" font-size="10" fill="#738196">${v}</text>`;
+ }
+ for(let i=0;i<n;i++){
+  const p=point(i,R),l=point(i,labelR),anchor=l[0]<cx-8?'end':l[0]>cx+8?'start':'middle';
+  out+=`<line x1="${cx}" y1="${cy}" x2="${p[0]}" y2="${p[1]}" stroke="#aeb9c7" stroke-opacity=".55"/>`;
+  const label=data[i].name.length>13?data[i].name.slice(0,12)+'…':data[i].name;
+  out+=`<text x="${l[0]}" y="${l[1]}" text-anchor="${anchor}" dominant-baseline="middle" font-size="${n>8?10:12}" fill="#334155">${esc(label)}</text>`;
+ }
+ // 평균 기준선: 사전 평균과 사후 평균을 각각 점선 원으로 표시
+ [{k:'before',color:'#3688e8'},{k:'after',color:'#e65b65'}].forEach(({k,color})=>{
+  const r=R*mean(k)/100;
+  out+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="1.7" stroke-dasharray="5 5" opacity=".75"/>`;
+ });
+ [['before','#3688e8','rgba(54,136,232,.15)'],['after','#e65b65','rgba(230,91,101,.16)']].forEach(([k,color,fill])=>{
+  const pts=data.map((d,i)=>point(i,R*d[k]/100).join(',')).join(' ');
+  out+=`<polygon points="${pts}" fill="${fill}" stroke="${color}" stroke-width="2.8" stroke-linejoin="round"/>`;
+  data.forEach((d,i)=>{const p=point(i,R*d[k]/100);out+=`<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="${color}" stroke="white" stroke-width="1.2"/>`;});
+ });
+ svg.innerHTML=out;
+}
+function render(){
+ $('beforeAvg').textContent=mean('before').toFixed(1)+'점';
+ $('afterAvg').textContent=mean('after').toFixed(1)+'점';
+ $('avgDiff').textContent=signed(mean('after')-mean('before'))+'점';
+ $('metrics').innerHTML=data.map((d,i)=>`<div class="metric">
+ <input data-i="${i}" data-k="name" aria-label="역량 영역명" maxlength="35" value="${esc(d.name)}">
+ <input type="number" min="0" max="100" step="1" data-i="${i}" data-k="before" aria-label="${esc(d.name)} 사전평가 점수" value="${d.before}">
+ <input type="number" min="0" max="100" step="1" data-i="${i}" data-k="after" aria-label="${esc(d.name)} 사후평가 점수" value="${d.after}">
+ <button data-del="${i}" aria-label="${esc(d.name)} 삭제">×</button></div>`).join('');
+ $('comparison').innerHTML=data.map(d=>{
+  const b=d.before-mean('before'),a=d.after-mean('after'),diff=d.after-d.before;
+  return `<tr><td>${esc(d.name)}</td><td>${d.before.toFixed(0)}점</td><td class="${b>=0?'positive':'negative'}">${signed(b)}점</td><td>${d.after.toFixed(0)}점</td><td class="${a>=0?'positive':'negative'}">${signed(a)}점</td><td class="${diff>=0?'positive':'negative'}">${signed(diff)}점</td></tr>`;
+ }).join('');
+ $('summary').innerHTML=summaryLines().map(x=>`<p>• ${esc(x)}</p>`).join('');
+ draw();
+}
+$('metrics').addEventListener('change',e=>{
+ const el=e.target.closest('[data-i]');if(!el)return;
+ const i=Number(el.dataset.i),k=el.dataset.k;
+ if(k==='name')data[i].name=el.value.trim()||`역량 ${i+1}`;
+ else data[i][k]=Math.max(0,Math.min(100,Math.round(Number(el.value)||0)));
+ render();
+});
+$('metrics').addEventListener('click',e=>{
+ const b=e.target.closest('[data-del]');if(!b)return;
+ data.splice(Number(b.dataset.del),1);render();
+});
+$('add').onclick=()=>{
+ if(data.length>=12){alert('최대 12개 영역까지 추가할 수 있습니다.');return;}
+ data.push({name:'새 역량 영역',before:0,after:0});render();
+ const inputs=$('metrics').querySelectorAll('input[data-k="name"]');inputs[inputs.length-1].focus();inputs[inputs.length-1].select();
+};
+$('reset').onclick=()=>{data=initial.map(x=>({...x}));render();};
+$('copy').onclick=async()=>{
+ const text=summaryLines().join('\n');
+ try{await navigator.clipboard.writeText(text);alert('분석 요약을 복사했습니다.');}
+ catch(e){window.prompt('아래 내용을 복사하세요.',text);}
+};
+$('save').onclick=()=>{
+ const original=$('radar'),svg=original.cloneNode(true);
+ svg.setAttribute('xmlns','http://www.w3.org/2000/svg');svg.setAttribute('width','1000');svg.setAttribute('height','860');
+ const blob=new Blob([new XMLSerializer().serializeToString(svg)],{type:'image/svg+xml;charset=utf-8'});
+ const url=URL.createObjectURL(blob),img=new Image();
+ img.onload=()=>{
+  const canvas=document.createElement('canvas');canvas.width=1100;canvas.height=960;
+  const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,1100,960);
+  ctx.drawImage(img,50,65,1000,860);ctx.fillStyle='#263449';ctx.font='bold 25px sans-serif';ctx.textAlign='center';ctx.fillText('학생 역량 사전·사후 평가 비교',550,40);
+  canvas.toBlob(b=>{if(b){const a=document.createElement('a'),u=URL.createObjectURL(b);a.href=u;a.download='학생_역량_비교_차트.png';a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);}URL.revokeObjectURL(url);},'image/png');
+ };
+ img.onerror=()=>{URL.revokeObjectURL(url);alert('이미지 저장에 실패했습니다.');};
+ img.src=url;
+};
+render();
+})();
+</script>
+</body>
+</html>
