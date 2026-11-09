@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수학 대모험 | Math Adventure</title>
+<style>
+:root{--ink:#24324b;--muted:#71809a;--blue:#6c9ff5;--blue2:#eaf2ff;--mint:#dff6ef;--yellow:#fff0bf;--pink:#ffe5eb;--purple:#eee8ff;--white:#fff;--line:#e7edf5;--shadow:0 12px 32px rgba(48,75,120,.10)}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#f4f8ff,#f8f7ff 55%,#f0fbf8);font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;color:var(--ink);min-height:100vh}
+button,input{font:inherit}button{cursor:pointer;border:0}
+.wrap{max-width:1120px;margin:auto;padding:26px 20px 60px}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:52px;height:52px;border-radius:17px;background:linear-gradient(135deg,#78a9ff,#9b8af4);display:grid;place-items:center;color:white;font-size:27px;box-shadow:0 8px 18px #9ab7f455}
+h1{font-size:25px;margin:0;letter-spacing:-.8px}.sub{font-size:12px;color:var(--muted);margin-top:3px}
+.profile{display:flex;gap:10px;align-items:center;background:#ffffffc9;border:1px solid var(--line);padding:9px 14px;border-radius:16px}.avatar{width:35px;height:35px;background:var(--yellow);border-radius:12px;display:grid;place-items:center;font-size:19px}.profile b{display:block;font-size:13px}.profile small{color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.stat{background:#fff;border:1px solid var(--line);border-radius:18px;padding:15px 17px;box-shadow:var(--shadow)}.stat .label{font-size:12px;color:var(--muted)}.stat strong{display:block;font-size:23px;margin-top:4px}.stat .hint{font-size:11px;color:#8a98ad}
+.panel{background:#fff;border:1px solid var(--line);border-radius:22px;padding:21px;box-shadow:var(--shadow);margin-bottom:17px}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:15px}.section-head h2{font-size:17px;margin:0}.section-head p{font-size:12px;color:var(--muted);margin:4px 0 0}
+.modes{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}.mode{padding:15px;border:1.5px solid var(--line);border-radius:17px;background:#fff;text-align:left;transition:.18s}.mode:hover{transform:translateY(-2px);border-color:#a9c6fb}.mode.active{border-color:var(--blue);background:var(--blue2);box-shadow:0 0 0 3px #6c9ff51c}.mode .emoji{font-size:24px}.mode b{display:block;margin:7px 0 3px;font-size:14px}.mode small{color:var(--muted);font-size:11px;line-height:1.4}
+.settings{display:grid;grid-template-columns:1.2fr 1fr;gap:18px}.group-title{font-size:12px;color:var(--muted);font-weight:700;margin:0 0 9px}.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{background:#f5f7fb;border:1px solid var(--line);padding:9px 13px;border-radius:12px;font-size:12px;color:#53627a}.chip.selected{background:#eaf2ff;border-color:#9bbcff;color:#356cc2;font-weight:700}
+.primary{background:linear-gradient(110deg,#6598f0,#8a83e9);color:white;padding:12px 22px;border-radius:13px;font-weight:800;box-shadow:0 7px 16px #7898e844}.primary:hover{filter:brightness(1.04)}.secondary{background:#f1f4f9;color:#56647b;padding:10px 16px;border-radius:12px;font-weight:700}
+.start-row{display:flex;justify-content:flex-end;margin-top:17px}
+.game{display:none;text-align:center;padding:25px 22px 23px}.game.show{display:block}.game-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px}.progress{height:8px;background:#edf1f7;border-radius:9px;margin:16px 0 25px;overflow:hidden}.progress>div{height:100%;background:linear-gradient(90deg,#69a3f5,#9a8bed);width:0%;transition:width .25s}
+.question-label{font-size:12px;color:var(--muted);margin-bottom:12px}.question{font-size:clamp(38px,7vw,58px);font-weight:850;letter-spacing:1px;margin:0 0 22px}.answer-row{display:flex;justify-content:center;gap:9px;max-width:390px;margin:auto}.answer-row input{width:100%;min-width:0;border:2px solid #e5ebf4;border-radius:14px;padding:13px;text-align:center;font-size:23px;font-weight:700;color:var(--ink);outline:none}.answer-row input:focus{border-color:#8bb1f7}.answer-row button{min-width:92px}.feedback{height:28px;margin:14px 0 4px;font-weight:800;font-size:14px}.feedback.good{color:#23a47c}.feedback.bad{color:#e46b7e}.game-actions{display:flex;justify-content:center;gap:8px;margin-top:7px}.mini{font-size:11px;color:var(--muted);margin-top:13px}
+.result{display:none;text-align:center;padding:30px}.result.show{display:block}.result .big{font-size:54px}.result h2{margin:8px 0}.result p{color:var(--muted)}
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:17px}.bar-row{display:grid;grid-template-columns:55px 1fr 35px;align-items:center;gap:8px;margin:12px 0;font-size:12px}.bar{height:9px;background:#eff2f7;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#73a8f5,#9b8eea);border-radius:9px}.badge-list{display:flex;flex-wrap:wrap;gap:9px}.badge-item{background:#f8f9fc;border:1px solid var(--line);border-radius:14px;padding:10px 12px;min-width:100px;text-align:center;font-size:11px;color:var(--muted)}.badge-item .em{font-size:22px;display:block;margin-bottom:3px}.badge-item.earned{background:#fff7dc;border-color:#f5dfa0;color:#8b6a16}.empty{font-size:12px;color:#9aa5b6;padding:15px;text-align:center}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#263651;color:white;padding:11px 17px;border-radius:30px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:5}.toast.show{opacity:1}
+footer{text-align:center;color:#9aa5b6;font-size:11px;margin-top:25px}
+@media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}.modes{grid-template-columns:repeat(2,1fr)}.settings,.bottom-grid{grid-template-columns:1fr}.profile{padding:7px 9px}.profile small{display:none}}
+@media(max-width:420px){.wrap{padding:17px 12px 40px}h1{font-size:21px}.panel{padding:16px}.game{padding:20px 13px}.answer-row button{min-width:78px}.stat{padding:12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+ <div class="brand"><div class="logo">✦</div><div><h1>수학 대모험</h1><div class="sub">PLAY · THINK · LEVEL UP!</div></div></div>
+ <div class="profile"><div class="avatar">🧑‍🚀</div><div><b>꼬마 수학 탐험가</b><small id="levelText">Lv. 1 탐험가</small></div></div>
+</header>
+<section class="stats">
+ <div class="stat"><div class="label">⭐ 보유 경험치</div><strong id="xpStat">0 XP</strong><div class="hint">다음 레벨까지 <span id="nextXp">100</span> XP</div></div>
+ <div class="stat"><div class="label">🔥 연속 학습</div><strong id="streakStat">0일</strong><div class="hint">오늘도 모험을 이어가요!</div></div>
+ <div class="stat"><div class="label">🧮 누적 정답</div><strong id="correctStat">0개</strong><div class="hint">차곡차곡 쌓이는 실력</div></div>
+ <div class="stat"><div class="label">🎯 정답률</div><strong id="accuracyStat">0%</strong><div class="hint">전체 풀이 기준</div></div>
+</section>
+<section class="panel" id="setupPanel">
+ <div class="section-head"><div><h2>🚀 모험 모드를 선택해요</h2><p>오늘은 어떤 방식으로 수학 실력을 키워볼까요?</p></div></div>
+ <div class="modes">
+  <button class="mode active" data-mode="time"><span class="emoji">⏱️</span><b>타임어택</b><small>60초 동안 최대한 많이 풀기</small></button>
+  <button class="mode" data-mode="infinite"><span class="emoji">🌿</span><b>무한 모드</b><small>시간 제한 없이 자유롭게 연습</small></button>
+  <button class="mode" data-mode="challenge"><span class="emoji">🏆</span><b>챌린지</b><small>10문제 연속 정답하면 레벨 업</small></button>
+  <button class="mode" data-mode="master"><span class="emoji">🐉</span><b>마스터전</b><small>복잡한 혼합 연산 5문제 클리어</small></button>
+ </div>
+ <div class="section-head" style="margin-top:22px"><div><h2>⚙️ 나만의 문제 설정</h2><p>연산 종류와 난이도를 골라주세요.</p></div></div>
+ <div class="settings">
+  <div><div class="group-title">연산 종류 (여러 개 선택 가능)</div><div class="chips" id="ops">
+   <button class="chip selected" data-op="add">➕ 덧셈</button><button class="chip selected" data-op="sub">➖ 뺄셈</button><button class="chip" data-op="mul">✖️ 곱셈</button><button class="chip" data-op="div">➗ 나눗셈</button><button class="chip" data-op="mix">🎲 혼합</button>
+  </div></div>
+  <div><div class="group-title">난이도</div><div class="chips" id="levels">
+   <button class="chip selected" data-level="easy">🌱 초급 (1~10)</button><button class="chip" data-level="mid">🌳 중급 (1~50)</button><button class="chip" data-level="hard">🔥 고급 (1~100)</button>
+  </div></div>
+ </div>
+ <div class="start-row"><button class="primary" id="startBtn">모험 시작하기 →</button></div>
+</section>
+<section class="panel game" id="gamePanel">
+ <div class="game-top"><span id="modeLabel">⏱️ 타임어택</span><b id="gameCounter">0 / ∞</b><span id="timer">⏳ 60초</span></div>
+ <div class="progress"><div id="progressBar"></div></div>
+ <div class="question-label" id="questionLabel">문제를 풀어보세요!</div>
+ <div class="question" id="question">7 + 3 = ?</div>
+ <form class="answer-row" id="answerForm"><input id="answerInput" type="number" inputmode="numeric" autocomplete="off" placeholder="정답 입력" aria-label="정답 입력"><button class="primary" type="submit">정답 확인</button></form>
+ <div class="feedback" id="feedback" aria-live="polite"></div>
+ <div class="game-actions"><button class="secondary" id="skipBtn">문제 건너뛰기</button><button class="secondary" id="quitBtn">모험 종료</button></div>
+ <div class="mini" id="streakMini">연속 정답 0회 · 정답마다 +10 XP</div>
+</section>
+<section class="panel result" id="resultPanel">
+ <div class="big" id="resultEmoji">🎉</div><h2 id="resultTitle">모험 완료!</h2><p id="resultText">멋져요! 오늘도 한 걸음 성장했어요.</p>
+ <div class="stats" style="max-width:600px;margin:20px auto"><div class="stat"><div class="label">정답</div><strong id="rCorrect">0</strong></div><div class="stat"><div class="label">풀이</div><strong id="rTotal">0</strong></div><div class="stat"><div class="label">획득 XP</div><strong id="rXp">0</strong></div><div class="stat"><div class="label">최고 연속 정답</div><strong id="rStreak">0</strong></div></div>
+ <button class="primary" id="againBtn">다시 모험하기</button> <button class="secondary" id="homeBtn">설정으로</button>
+</section>
+<div class="bottom-grid">
+ <section class="panel"><div class="section-head"><div><h2>📊 나의 연산 분석</h2><p>연산별 정답률로 강점과 보완점을 확인해요.</p></div></div><div id="analysis"><div class="empty">문제를 풀면 나의 연산 분석이 나타나요.</div></div></section>
+ <section class="panel"><div class="section-head"><div><h2>🏅 나의 배지</h2><p>도전할수록 새로운 배지를 모을 수 있어요.</p></div></div><div class="badge-list" id="badges"></div></section>
+</div>
+<footer>수학 대모험 · 학습 기록은 이 브라우저에 자동 저장돼요.</footer>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const KEY='mathAdventure_v1';
+const fresh=()=>({xp:0,correct:0,total:0,streak:0,bestStreak:0,lastDate:null,days:0,ops:{add:{c:0,t:0},sub:{c:0,t:0},mul:{c:0,t:0},div:{c:0,t:0}},sessions:0});
+let data;try{data={...fresh(),...JSON.parse(localStorage.getItem(KEY)||'{}')};data.ops={...fresh().ops,...(data.ops||{})}}catch(e){data=fresh()}
+let mode='time',level='easy',selectedOps=['add','sub'],question=null,correct=0,total=0,xpEarned=0,streak=0,best=0,remaining=60,clock=null,active=false,challengeLevel=1;
+const $=id=>document.getElementById(id);
+const opNames={add:'덧셈',sub:'뺄셈',mul:'곱셈',div:'나눗셈'};
+function save(){localStorage.setItem(KEY,JSON.stringify(data));renderStats()}
+function renderStats(){
+ const lv=Math.floor(data.xp/100)+1,within=data.xp%100;
+ $('xpStat').textContent=data.xp+' XP';$('nextXp').textContent=100-within;$('levelText').textContent=`Lv. ${lv} ${lv<3?'탐험가':lv<6?'수학 용사':'연산 마스터'}`;
+ $('streakStat').textContent=data.streak+'일';$('correctStat').textContent=data.correct+'개';$('accuracyStat').textContent=(data.total?Math.round(data.correct/data.total*100):0)+'%';
+ renderAnalysis();renderBadges();
+}
+function renderAnalysis(){
+ const labels={add:'덧셈',sub:'뺄셈',mul:'곱셈',div:'나눗셈'};
+ const rows=Object.entries(data.ops).map(([k,v])=>{let p=v.t?Math.round(v.c/v.t*100):0;return `<div class="bar-row"><b>${labels[k]}</b><div class="bar"><i style="width:${p}%"></i></div><span>${v.t?p+'%':'—'}</span></div>`}).join('');
+ const used=Object.values(data.ops).filter(x=>x.t);let weakest=used.length?Object.entries(data.ops).filter(x=>x[1].t).sort((a,b)=>a[1].c/a[1].t-b[1].c/b[1].t)[0][0]:null;
+ $('analysis').innerHTML=rows+(weakest?`<div style="font-size:12px;background:#f5f8ff;padding:11px;border-radius:12px;margin-top:12px">💡 <b>다음 도전:</b> ${labels[weakest]} 연산을 조금 더 연습해 보세요!</div>`:'<div class="empty">연산을 풀면 강점과 약점을 분석해 드려요.</div>');
+}
+const badgeDefs=[['first','🌟','첫걸음','첫 문제 정답'],['ten','🔟','열 문제 달성','누적 정답 10개'],['fifty','🎖️','실력 쑥쑥','누적 정답 50개'],['streak5','🔥','콤보 마스터','연속 정답 5회'],['perfect','💯','완벽주의자','한 판 정답률 100%'],['days3','📅','꾸준한 탐험가','3일 연속 학습']];
+function renderBadges(){let earned=new Set();if(data.correct>=1)earned.add('first');if(data.correct>=10)earned.add('ten');if(data.correct>=50)earned.add('fifty');if(data.bestStreak>=5)earned.add('streak5');if(data.days>=3)earned.add('days3');if(data.perfect)earned.add('perfect');$('badges').innerHTML=badgeDefs.map(b=>`<div class="badge-item ${earned.has(b[0])?'earned':''}"><span class="em">${b[1]}</span><b>${b[2]}</b><br>${b[3]}</div>`).join('')}
+function toast(s){$('toast').textContent=s;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1800)}
+document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>{document.querySelectorAll('.mode').forEach(x=>x.classList.remove('active'));b.classList.add('active');mode=b.dataset.mode});
+document.querySelectorAll('#ops .chip').forEach(b=>b.onclick=()=>{let op=b.dataset.op;if(op==='mix'){selectedOps=['add','sub','mul','div'];document.querySelectorAll('#ops .chip').forEach(x=>x.classList.toggle('selected',x.dataset.op==='mix'))}else{document.querySelector('[data-op="mix"]').classList.remove('selected');if(b.classList.contains('selected')){b.classList.remove('selected');selectedOps=selectedOps.filter(x=>x!==op)}else{b.classList.add('selected');selectedOps.push(op)}if(!selectedOps.length){selectedOps=['add'];document.querySelector('[data-op="add"]').classList.add('selected')}}});
+document.querySelectorAll('#levels .chip').forEach(b=>b.onclick=()=>{document.querySelectorAll('#levels .chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');level=b.dataset.level});
+function randomInt(n){return Math.floor(Math.random()*n)+1}
+function makeQuestion(){
+ let max=level==='easy'?10:level==='mid'?50:100;
+ let ops=mode==='master'?['add','sub','mul','div']:selectedOps;
+ let op=ops[Math.floor(Math.random()*ops.length)],a,b,ans,symbol;
+ if(op==='add'){a=randomInt(max);b=randomInt(max);ans=a+b;symbol='+'}
+ if(op==='sub'){a=randomInt(max);b=randomInt(max);if(b>a)[a,b]=[b,a];ans=a-b;symbol='−'}
+ if(op==='mul'){let cap=level==='easy'?10:level==='mid'?12:20;a=randomInt(cap);b=randomInt(cap);ans=a*b;symbol='×'}
+ if(op==='div'){b=randomInt(level==='easy'?10:level==='mid'?12:20);ans=randomInt(level==='easy'?10:level==='mid'?20:30);a=b*ans;symbol='÷'}
+ if(mode==='master'&&Math.random()>.45){let c=randomInt(Math.min(9,max));if(op==='add'){ans=ans+c;symbol=`(${a} + ${b}) + ${c}`}else if(op==='sub'){ans=ans-c;symbol=`(${a} − ${b}) − ${c}`}else if(op==='mul'){ans=ans+c;symbol=`(${a} × ${b}) + ${c}`}else{ans=ans+c;symbol=`(${a} ÷ ${b}) + ${c}`}}
+ return {op,ans,text:symbol.replaceAll('(','').replaceAll(')','')};
+}
+function startGame(){
+ if(mode==='master'){selectedOps=['add','sub','mul','div']}
+ correct=0;total=0;xpEarned=0;streak=0;best=0;remaining=60;active=true;challengeLevel=1;
+ $('setupPanel').style.display='none';$('resultPanel').classList.remove('show');$('gamePanel').classList.add('show');
+ $('modeLabel').textContent={time:'⏱️ 타임어택',infinite:'🌿 무한 모드',challenge:'🏆 챌린지',master:'🐉 마스터전'}[mode];
+ $('timer').textContent=mode==='time'?'⏳ 60초':mode==='master'?'🐉 보스전':'♾️ 제한 없음';
+ $('gameCounter').textContent=mode==='master'?'0 / 5':mode==='challenge?'연속 0 / 10':'0문제';
+ $('questionLabel').textContent=mode==='challenge'?'10문제 연속 정답에 도전!':mode==='master'?'마스터의 혼합 연산을 풀어보세요!':'문제를 풀어보세요!';
+ if(clock)clearInterval(clock);if(mode==='time')clock=setInterval(()=>{remaining--;$('timer').textContent='⏳ '+remaining+'초';if(remaining<=0)finish('time')},1000);
+ nextQuestion();$('answerInput').focus();
+}
+function nextQuestion(){if(!active)return;question=makeQuestion();$('question').textContent=question.text+' = ?';$('answerInput').value='';$('feedback').textContent='';$('feedback').className='feedback';$('streakMini').textContent=`연속 정답 ${streak}회 · 정답마다 +10 XP${streak>=3?' · 콤보 보너스!':''}`;$('progressBar').style.width=(mode==='master'?total/5*100:mode==='challenge'?streak/10*100:0)+'%';}
+function submitAnswer(e){e.preventDefault();if(!active||$('answerInput').value.trim()==='')return;let val=Number($('answerInput').value);total++;data.total++;data.ops[question.op].t++;
+ if(val===question.ans){correct++;data.correct++;data.ops[question.op].c++;streak++;best=Math.max(best,streak);data.bestStreak=Math.max(data.bestStreak,streak);let gain=10+(streak>=3?5:0);xpEarned+=gain;data.xp+=gain;$('feedback').textContent=streak>=3?`🔥 정답! 콤보 보너스 +${gain} XP`:`✨ 정답! +${gain} XP`;$('feedback').className='feedback good';if(data.correct===1)toast('첫 정답 배지를 획득했어요!')}
+ else{streak=0;$('feedback').textContent=`아쉬워요! 정답은 ${question.ans}이에요.`;$('feedback').className='feedback bad'}
+ save();$('gameCounter').textContent=mode==='master'?`${total} / 5`:mode==='challenge'?`연속 ${streak} / 10`:`${total}문제`;
+ if(mode==='master'&&total>=5){setTimeout(()=>finish('master'),650);return}
+ if(mode==='challenge'&&streak>=10){setTimeout(()=>finish('challenge'),650);return}
+ if(mode==='challenge'&&val!==question.ans){$('questionLabel').textContent='다시 도전해 볼까요? 연속 정답은 0부터 시작해요.'}
+ if(mode==='time'&&remaining<=0)return;
+ setTimeout(nextQuestion,550);
+}
+function finish(reason){
+ if(!active)return;active=false;if(clock)clearInterval(clock);data.sessions++;
+ const today=new Date().toISOString().slice(0,10);if(data.lastDate!==today){let y=new Date();y.setDate(y.getDate()-1);let yesterday=y.toISOString().slice(0,10);data.streak=data.lastDate===yesterday?data.streak+1:1;data.lastDate=today;data.days=Math.max(data.days,data.streak)}
+ if(total>0&&correct===total)data.perfect=true;save();$('gamePanel').classList.remove('show');$('resultPanel').classList.add('show');
+ let title=reason==='challenge'?'챌린지 성공!':reason==='master'?'마스터전 완료!':reason==='time'?'타임어택 종료!':'모험 종료';
+ $('resultTitle').textContent=title;$('resultEmoji').textContent=reason==='challenge'||reason==='master'?'🏆':'🎉';
+ $('resultText').textContent=reason==='challenge'?'10문제 연속 정답! 대단한 집중력이에요.':reason==='master'?'마스터의 문제 5개에 도전했어요!':`총 ${total}문제를 풀었어요. 다음 모험도 기대할게요!`;
+ $('rCorrect').textContent=correct;$('rTotal').textContent=total;$('rXp').textContent='+'+xpEarned;$('rStreak').textContent=best;
+}
+$('startBtn').onclick=startGame;$('answerForm').onsubmit=submitAnswer;$('skipBtn').onclick=()=>{if(active){total++;data.total++;data.ops[question.op].t++;streak=0;save();$('gameCounter').textContent=mode==='master'?`${total} / 5`:mode==='challenge'?`연속 0 / 10`:`${total}문제`;if(mode==='master'&&total>=5)finish('master');else nextQuestion()}};
+$('quitBtn').onclick=()=>finish('quit');$('againBtn').onclick=startGame;$('homeBtn').onclick=()=>{$('resultPanel').classList.remove('show');$('setupPanel').style.display='block'};
+renderStats();
+</script>
+</body></html>
