@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시계 읽기 연습</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; min-height: 100vh;
+    font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+    background: linear-gradient(160deg, #eaf4ff 0%, #f7fbff 60%, #fff8ec 100%);
+    display: flex; justify-content: center; align-items: flex-start;
+    padding: 24px 16px 60px; color: #22303f;
+  }
+  .app { width: 100%; max-width: 560px; }
+
+  header { text-align: center; margin-bottom: 18px; }
+  h1 { font-size: 24px; margin: 0 0 6px; letter-spacing: -0.5px; }
+  .sub { font-size: 13px; color: #6b7c8f; }
+
+  .levels { display: flex; gap: 8px; justify-content: center; margin: 18px 0; flex-wrap: wrap; }
+  .levels button {
+    border: 2px solid #cfe3f7; background: #fff; color: #4a6b8a;
+    padding: 9px 14px; border-radius: 999px; font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: .18s; font-family: inherit;
+  }
+  .levels button:hover { border-color: #8fc0ea; }
+  .levels button.on { background: #3d8bfd; border-color: #3d8bfd; color: #fff; box-shadow: 0 4px 12px rgba(61,139,253,.35); }
+
+  .clock-card {
+    background: #fff; border-radius: 28px; padding: 20px;
+    box-shadow: 0 10px 30px rgba(80,120,170,.13);
+    display: flex; justify-content: center;
+  }
+  svg { width: 100%; max-width: 320px; height: auto; }
+
+  .stats { display: flex; gap: 10px; margin: 18px 0 14px; }
+  .stat {
+    flex: 1; background: #fff; border-radius: 16px; padding: 12px 8px; text-align: center;
+    box-shadow: 0 4px 14px rgba(80,120,170,.1);
+  }
+  .stat .k { font-size: 12px; color: #7b8c9e; font-weight: 600; }
+  .stat .v { font-size: 22px; font-weight: 800; margin-top: 3px; }
+  .stat.total .v { color: #3d8bfd; }
+  .stat.right .v { color: #21a366; }
+  .stat.wrong .v { color: #e8623d; }
+
+  .answer {
+    background: #fff; border-radius: 22px; padding: 18px;
+    box-shadow: 0 10px 30px rgba(80,120,170,.13);
+  }
+  .inputs { display: flex; align-items: flex-end; justify-content: center; gap: 10px; }
+  .field { text-align: center; }
+  .field label { display: block; font-size: 12px; font-weight: 700; color: #7b8c9e; margin-bottom: 5px; }
+  .field input {
+    width: 78px; font-size: 26px; font-weight: 800; text-align: center;
+    padding: 8px 4px; border: 2px solid #d8e6f5; border-radius: 14px;
+    color: #22303f; font-family: inherit; outline: none; transition: .15s;
+  }
+  .field input:focus { border-color: #3d8bfd; box-shadow: 0 0 0 4px rgba(61,139,253,.14); }
+  .field input::-webkit-outer-spin-button,
+  .field input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .field input[type=number] { -moz-appearance: textfield; }
+  .unit { font-size: 16px; font-weight: 700; color: #7b8c9e; padding-bottom: 14px; }
+
+  .btns { display: flex; gap: 10px; margin-top: 16px; }
+  .btns button {
+    flex: 1; padding: 14px; border-radius: 16px; border: none;
+    font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit;
+    transition: transform .1s, box-shadow .18s;
+  }
+  .btns button:active { transform: scale(.97); }
+  #checkBtn { background: #3d8bfd; color: #fff; box-shadow: 0 6px 16px rgba(61,139,253,.35); }
+  #checkBtn:disabled { background: #c9d9e8; box-shadow: none; cursor: default; }
+  #skipBtn { background: #eef4fb; color: #5c7geo; color: #5c7a99; flex: 0 0 44%; }
+  #skipBtn:hover { background: #e2ecf8; }
+
+  .message {
+    margin-top: 14px; border-radius: 16px; padding: 14px 16px;
+    font-size: 15px; font-weight: 700; line-height: 1.5; display: none;
+  }
+  .message.show { display: block; animation: pop .28s ease-out; }
+  .message.ok { background: #e7f8ef; color: #14804a; }
+  .message.no { background: #fdeeea; color: #b8431f; }
+  .message .hint { display: block; font-size: 13.5px; font-weight: 600; margin-top: 7px; color: #7a5a4a; }
+
+  @keyframes pop { from { transform: translateY(6px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  /* 폭죽/풍선 캔버스 */
+  #fx { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+
+  .footnote { text-align: center; font-size: 12px; color: #8b9bab; margin-top: 16px; }
+
+  @media (max-width: 400px) {
+    .field input { width: 66px; font-size: 22px; }
+    h1 { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>🕐 시계 읽기 연습</h1>
+    <div class="sub">시계를 보고 몇 시 몇 분인지 맞혀 보세요!</div>
+  </header>
+
+  <div class="levels" id="levels">
+    <button data-level="1">1단계 · 정시</button>
+    <button data-level="2">2단계 · 30분</button>
+    <button data-level="3">3단계 · 5분</button>
+    <button data-level="4">4단계 · 1분</button>
+  </div>
+
+  <div class="clock-card">
+    <svg id="clock" viewBox="0 0 400 400" aria-label="아날로그 시계"></svg>
+  </div>
+
+  <div class="stats">
+    <div class="stat total"><div class="k">전체 문제</div><div class="v" id="sTotal">0</div></div>
+    <div class="stat right"><div class="k">맞힌 개수</div><div class="v" id="sRight">0</div></div>
+    <div class="stat wrong"><div class="k">틀린 개수</div><div class="v" id="sWrong">0</div></div>
+  </div>
+
+  <div class="answer">
+    <div class="inputs">
+      <div class="field">
+        <label for="hIn">시</label>
+        <input id="hIn" type="number" inputmode="numeric" min="1" max="12" placeholder="0">
+      </div>
+      <div class="unit">시</div>
+      <div class="field">
+        <label for="mIn">분</label>
+        <input id="mIn" type="number" inputmode="numeric" min="0" max="59" placeholder="0">
+      </div>
+      <div class="unit">분</div>
+    </div>
+    <div class="btns">
+      <button id="checkBtn">정답 확인</button>
+      <button id="skipBtn">다음 문제</button>
+    </div>
+    <div class="message" id="msg"></div>
+  </div>
+
+  <div class="footnote">4단계까지 도전해 보세요!</div>
+</div>
+
+<canvas id="fx"></canvas>
+
+<script>
+(() => {
+  "use strict";
+
+  /* ---------- 상태 ---------- */
+  const state = {
+    level: 1,
+    hour: 12,
+    minute: 0,
+    total: 0,
+    right: 0,
+    wrong: 0,
+    locked: false,   // 정답/오답 처리 중 입력 잠금
+    wrongTries: 0    // 현재 문제에서 틀린 횟수 → 힌트 단계
+  };
+
+  const LEVEL_MINUTES = { 1: [0], 2: [0, 30], 3: [0,5,10,15,20,25,30,35,40,45,50,55], 4: null };
+  const LEVEL_LABEL = { 1: "정시", 2: "30분 단위", 3: "5분 단위", 4: "1분 단위" };
+
+  /* ---------- DOM ---------- */
+  const svg      = document.getElementById("clock");
+  const levelsEl = document.getElementById("levels");
+  const hIn      = document.getElementById("hIn");
+  const mIn      = document.getElementById("mIn");
+  const checkBtn = document.getElementById("checkBtn");
+  const skipBtn  = document.getElementById("skipBtn");
+  const msgEl    = document.getElementById("msg");
+  const sTotal   = document.getElementById("sTotal");
+  const sRight   = document.getElementById("sRight");
+  const sWrong   = document.getElementById("sWrong");
+
+  /* ---------- 시계 그리기 ---------- */
+  const CX = 200, CY = 200, R = 178;
+
+  function xy(angleDeg, radius) {
+    const a = (angleDeg - 90) * Math.PI / 180;  // 12시 방향 = -90도 보정
+    return [CX + radius * Math.cos(a), CY + radius * Math.sin(a)];
+  }
+
+  function buildClockFace() {
+    const parts = [];
+
+    // 시계 판
+    parts.push(`<circle cx="${CX}" cy="${CY}" r="${R}" fill="#ffffff" stroke="#b9d4ee" stroke-width="8"/>`);
+    parts.push(`<circle cx="${CX}" cy="${CY}" r="${R - 12}" fill="none" stroke="#eef5fc" stroke-width="2"/>`);
+
+    // 60개 눈금
+    for (let i = 0; i < 60; i++) {
+      const deg = i * 6;
+      const isHour = i % 5 === 0;
+      const inner = isHour ? R - 26 : R - 14;
+      const [x1, y1] = xy(deg, inner);
+      const [x2, y2] = xy(deg, R - 6);
+      parts.push(
+        `<line x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}"
+           stroke="${isHour ? "#5b7fa6" : "#c3d8ec"}" stroke-width="${isHour ? 6 : 2.5}" stroke-linecap="round"/>`
+      );
+    }
+
+    // 분 눈금 숫자(5,10,...55) - 작게
+    for (let m = 5; m < 60; m += 5) {
+      const [x, y] = xy(m * 6, R - 44);
+      parts.push(
+        `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" dominant-baseline="central"
+           font-size="15" font-weight="600" fill="#a8bed4">${m}</text>`
+      );
+    }
+
+    // 시각 숫자 1~12
+    for (let h = 1; h <= 12; h++) {
+      const [x, y] = xy(h * 30, R - 74);
+      parts.push(
+        `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" dominant-baseline="central"
+           font-size="34" font-weight="800" fill="#2f4964">${h}</text>`
+      );
+    }
+
+    // 중심 축
+    parts.push(`<circle cx="${CX}" cy="${CY}" r="9" fill="#2f4964"/>`);
+    parts.push(`<circle cx="${CX}" cy="${CY}" r="3.5" fill="#ffffff"/>`);
+
+    svg.innerHTML = parts.join("");
+  }
+
+  // 침 레이어를 매번 새로 그려 각도를 정확히 반영
+  let handsLayer = null;
+
+  function buildHands() {
+    handsLayer = document.createElementNS("[w3.org](http://www.w3.org/2000/svg)", "g");
+    svg.appendChild(handsLayer);
+    drawHands();
+  }
+
+  function drawHands() {
+    if (!handsLayer) return;
+
+    const { hour, minute } = state;
+
+    // ★ 핵심 각도 로직 ★
+    // 분침: 1분 = 6도
+    const minuteAngle = minute * 6;
+    // 시침: 1시간 = 30도, 게다가 분에 비례해 30도/60분 = 0.5도씩 추가 이동
+    const hourAngle = (hour % 12) * 30 + minute * 0.5;
+
+    const ns = "[w3.org](http://www.w3.org/2000/svg)";
+    const g = document.createElementNS(ns, "g");
+
+    // 시침
+    const hourHand = document.createElementNS(ns, "g");
+    hourHand.setAttribute("transform", `rotate(${hourAngle} ${CX} ${CY})`);
+    hourHand.innerHTML = `
+      <rect x="${CX - 7}" y="${CY - 92}" width="14" height="92" rx="7" fill="#2f4964"/>
+      <rect x="${CX - 7}" y="${CY}" width="14" height="28" rx="7" fill="#2f4964"/>`;
+    g.appendChild(hourHand);
+
+    // 분침
+    const minHand = document.createElementNS(ns, "g");
+    minHand.setAttribute("transform", `rotate(${minuteAngle} ${CX} ${CY})`);
+    minHand.innerHTML = `
+      <rect x="${CX - 4.5}" y="${CY - 134}" width="9" height="134" rx="4.5" fill="#3d8bfd"/>
+      <rect x="${CX - 4.5}" y="${CY}" width="9" height="30" rx="4.5" fill="#3d8bfd"/>`;
+    g.appendChild(minHand);
+
+    // 중심 캡
+    const cap = document.createElementNS(ns, "circle");
+    cap.setAttribute("cx", CX); cap.setAttribute("cy", CY); cap.setAttribute("r", 8);
+    cap.setAttribute("fill", "#3d8bfd");
+    g.appendChild(cap);
+
+    const capIn = document.createElementNS(ns, "circle");
+    capIn.setAttribute("cx", CX); capIn.setAttribute("cy", CY); capIn.setAttribute("r", 3);
+    capIn.setAttribute("fill", "#ffffff");
+    g.appendChild(capIn);
+
+    handsLayer.innerHTML = "";
+    handsLayer.appendChild(g);
+  }
+
+  /* ---------- 문제 생성 ---------- */
+  function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+  function pickTime() {
+    const hour = randomInt(1, 12);
+    let minute;
+
+    if (state.level === 4) {
+      minute = randomInt(0, 59);
+    } else {
+      const pool = LEVEL_MINUTES[state.level];
+      minute = pool[randomInt(0, pool.length - 1)];
+    }
+
+    // 같은 문제 반복 방지
+    if (hour === state.hour && minute === state.minute) {
+      minute = (minute + (state.level === 4 ? 1 : (state.level === 3 ? 5 : (state.level === 2 ? 30 : 60)))) % 60;
+    }
+
+    state.hour = hour;
+    state.minute = minute;
+  }
+
+  function newQuestion() {
+    pickTime();
+    state.locked = false;
+    state.wrongTries = 0;
+    state.total += 1;
+
+    hIn.value = "";
+    mIn.value = "";
+    hIn.disabled = false;
+    mIn.disabled = false;
+    checkBtn.disabled = false;
+    checkBtn.textContent = "정답 확인";
+
+    msgEl.className = "message";
+    msgEl.innerHTML = "";
+
+    drawHands();
+    updateStats();
+    hIn.focus();
+  }
+
+  function updateStats() {
+    sTotal.textContent = state.total;
+    sRight.textContent = state.right;
+    sWrong.textContent = state.wrong;
+  }
+
+  /* ---------- 채점 ---------- */
+  function timeToText(h, m) {
+    const mm = String(m).padStart(2, "0");
+    return `${h}시 ${mm}분`;
+  }
+
+  // 오답 힌트 (틀린 횟수에 따라 단계 상승)
+  function buildHint() {
+    const { hour, minute, wrongTries } = state;
+    const hourAngle = ((hour % 12) * 30 + minute * 0.5).toFixed(1);
+
+    if (wrongTries === 1) {
+      return "💡 분침이 가리키는 숫자를 5씩 세어 보세요. (1=5분, 2=10분 …)";
+    }
+    if (wrongTries === 2) {
+      return `💡 분침은 ${minute}분을 가리키고 있어요. 분침을 ${minute}분에 맞춰 보세요.`;
+    }
+    return `💡 시침은 ${hour}와 다음 숫자 사이를 보고 있어요. 분침이 ${minute}분이면 시침은 조금 더 움직여요(약 ${hourAngle}°).`;
+  }
+
+  function check() {
+    if (state.locked) return;
+
+    const hRaw = hIn.value.trim();
+    const mRaw = mIn.value.trim();
+
+    if (hRaw === "" || mRaw === "") {
+      msgEl.className = "message no show";
+      msgEl.innerHTML = "시와 분을 모두 입력해 주세요.";
+      return;
+    }
+
+    const userH = parseInt(hRaw, 10);
+    const userM = parseInt(mRaw, 10);
+
+    if (isNaN(userH) || isNaN(userM) || userM < 0 || userM > 59) {
+      msgEl.className = "message no show";
+      msgEl.innerHTML = "분은 0~59 사이 숫자로 입력해 주세요.";
+      return;
+    }
+
+    // 12시는 0시로도 인정
+    const normalizedUserH = userH === 0 ? 12 : userH;
+    const isRight = (normalizedUserH === state.hour) && (userM === state.minute);
+
+    if (isRight) {
+      state.right += 1;
+      state.locked = true;
+      checkBtn.disabled = true;
+      hIn.disabled = true;
+      mIn.disabled = true;
+
+      msgEl.className = "message ok show";
+      msgEl.innerHTML = `🎉 정답이에요! <strong>${timeToText(state.hour, state.minute)}</strong>`;
+      updateStats();
+
+      celebrate();
+
+      // 1.4초 뒤 자동 다음 문제
+      setTimeout(() => { if (state.locked) newQuestion(); }, 1400);
+
+    } else {
+      state.wrong += 1;
+      state.wrongTries += 1;
+
+      msgEl.className = "message no show";
+      msgEl.innerHTML =
+        `정답은 <strong>${timeToText(state.hour, state.minute)}</strong>예요.` +
+        `<span class="hint">${buildHint()}</span>`;
+
+      updateStats();
+      mIn.focus();
+      mIn.select && mIn.select();
+    }
+  }
+
+  /* ---------- 풍선 + 폭죽 효과 ---------- */
+  const canvas = document.getElementById("fx");
+  const ctx = canvas.getContext("2d");
+  let particles = [];
+  let animId = null;
+
+  function resizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+    canvas.style.width = window.innerWidth + "px";
+    canvas.style.height = window.innerHeight + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener("resize", resizeCanvas);
+  resizeCanvas();
+
+  const BALLOON_COLORS = ["#ff6b6b","#ffd93d","#6bcB77","#4d96ff","#c77dff","#ff9f45","#2ec4b6"];
+
+  function spawnFirework(x, y) {
+    const color = BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)];
+    const count = 26;
+    for (let i = 0; i < count; i++) {
+      const ang = (Math.PI * 2 * i) / count + Math.random() * 0.3;
+      const spd = 2 + Math.random() * 4;
+      particles.push({
+        type: "spark",
+        x, y,
+        vx: Math.cos(ang) * spd,
+        vy: Math.sin(ang) * spd,
+        life: 1,
+        decay: 0.016 + Math.random() * 0.012,
+        color: Math.random() < 0.35 ? "#ffffff" : color,
+        size: 2 + Math.random() * 2.5
+      });
+    }
+  }
+
+  function spawnBalloon() {
+    const x = 40 + Math.random() * (window.innerWidth - 80);
+    particles.push({
+      type: "balloon",
+      x,
+      y: window.innerHeight + 40,
+      vx: (Math.random() - 0.5) * 0.6,
+      vy: -(1.4 + Math.random() * 1.4),
+      sway: Math.random() * Math.PI * 2,
+      life: 1,
+      decay: 0.004,
+      color: BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)],
+      scale: 0.75 + Math.random() * 0.55
+    });
+  }
+
+  function drawBalloon(p) {
+    ctx.save();
+    ctx.translate(p.x + Math.sin(p.sway) * 8, p.y);
+    ctx.scale(p.scale, p.scale);
+    ctx.globalAlpha = Math.max(0, Math.min(1, p.life));
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(0, -44, 34, -40, 34, -12);
+    ctx.bezierCurveTo(34, 12, 12, 26, 0, 34);
+    ctx.bezierCurveTo(-12, 26, -34, 12, -34, -12);
+    ctx.bezierCurveTo(-34, -40, 0, -44, 0, 0);
+    ctx.fillStyle = p.color;
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,.85)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // 하이라이트
+    ctx.beginPath();
+    ctx.ellipse(-12, -14, 6, 10, -0.4, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255,255,255,.55)";
+    ctx.fill();
+
+    // 실
+    ctx.beginPath();
+    ctx.moveTo(0, 34);
+    ctx.quadraticCurveTo(6, 58, -2, 80);
+    ctx.strokeStyle = "rgba(90,110,130,.5)";
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+    particles = particles.filter(p => p.life > 0.02);
+
+    for (const p of particles) {
+      if (p.type === "balloon") {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.sway += 0.045;
+        p.life -= p.decay;
+        drawBalloon(p);
+      } else {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.11;          // 중력
+        p.vx *= 0.985;
+        p.vy *= 0.985;
+        p.life -= p.decay;
+
+        ctx.globalAlpha = Math.max(0, Math.min(1, p.life));
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
+
+    if (particles.length > 0) {
+      animId = requestAnimationFrame(render);
+    } else {
+      animId = null;
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    }
+  }
+
+  function celebrate() {
+    spawnFirework(window.innerWidth * 0.25, window.innerHeight * 0.35);
+    spawnFirework(window.innerWidth * 0.75, window.innerHeight * 0.30);
+    setTimeout(() => spawnFirework(window.innerWidth * 0.5, window.innerHeight * 0.5), 180);
+
+    for (let i = 0; i < 9; i++) setTimeout(spawnBalloon, i * 110);
+
+    if (!animId) animId = requestAnimationFrame(render);
+  }
+
+  /* ---------- 레벨 선택 ---------- */
+  function setLevel(level) {
+    state.level = level;
+    [...levelsEl.children].forEach(btn => {
+      btn.classList.toggle("on", Number(btn.dataset.level) === level);
+    });
+    // 레벨 바뀌면 통계 초기화 후 새 문제
+    state.total = state.right = state.wrong = 0;
+    state.hour = 0; state.minute = 0;
+    newQuestion();
+  }
+
+  levelsEl.addEventListener("click", e => {
+    const btn = e.target.closest("button[data-level]");
+    if (btn) setLevel(Number(btn.dataset.level));
+  });
+
+  /* ---------- 이벤트 ---------- */
+  checkBtn.addEventListener("click", check);
+  skipBtn.addEventListener("click", () => {
+    // 건너뛰기는 통계에 반영하지 않고 새 문제로
+    newQuestion();
+  });
+
+  [hIn, mIn].forEach(inp => {
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+  });
+
+  // 분 입력 2자리 제한
+  mIn.addEventListener("input", () => {
+    if (mIn.value.length > 2) mIn.value = mIn.value.slice(0, 2);
+  });
+  hIn.addEventListener("input", () => {
+    if (hIn.value.length > 2) hIn.value = hIn.value.slice(0, 2);
+  });
+
+  /* ---------- 시작 ---------- */
+  buildClockFace();
+  buildHands();
+  setLevel(1);
+})();
+</script>
+</body>
+</html>
