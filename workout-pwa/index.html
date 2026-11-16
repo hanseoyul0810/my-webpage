@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>운동 기록</title>
+
+<!-- PWA 필수 -->
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#2f6bff">
+
+<!-- iOS 홈 화면 추가 대응 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="운동기록">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+<style>
+  :root { --safe-b: env(safe-area-inset-bottom, 0px); }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { background: #f4f5f7; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    background: #f4f5f7;
+    color: #1a1a1a;
+    display: flex;
+    justify-content: center;
+    padding: 20px 14px calc(24px + var(--safe-b));
+    min-height: 100vh;
+  }
+  .app { width: 100%; max-width: 480px; }
+
+  header { margin-bottom: 16px; }
+  h1 { font-size: 21px; }
+  .sub { font-size: 13px; color: #8a8f98; margin-top: 3px; }
+
+  .month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .month-nav button {
+    width: 34px; height: 34px; border: 1px solid #dfe1e5; background: #fff;
+    border-radius: 9px; font-size: 16px; cursor: pointer; color: #4a5058;
+  }
+  .month-nav button:disabled { opacity: .35; cursor: default; }
+  .month-label { font-size: 16px; font-weight: 700; }
+
+  .card {
+    background: #fff; border-radius: 16px; padding: 16px;
+    margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  .card h2 { font-size: 14px; margin-bottom: 12px; color: #4a5058; }
+
+  .weekdays, .grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+  .weekdays span { text-align: center; font-size: 11px; color: #a8adb5; padding-bottom: 6px; }
+  .weekdays span:first-child { color: #ff6b6b; }
+  .weekdays span:last-child { color: #2f6bff; }
+  .grid { gap: 3px; }
+  .day {
+    position: relative; aspect-ratio: 1; border: none; background: #f7f8fa;
+    border-radius: 9px; font-size: 12px; color: #4a5058; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; padding: 2px;
+  }
+  .day.blank { background: transparent; cursor: default; }
+  .day.today { outline: 2px solid #2f6bff; outline-offset: -2px; }
+  .day.sel { background: #2f6bff; color: #fff; }
+  .day.partial { background: #eef3ff; }
+  .day.done { background: #2f6bff; color: #fff; }
+  .dot { width: 5px; height: 5px; border-radius: 50%; background: #2f6bff; opacity: 0; }
+  .day.has .dot { opacity: 1; }
+  .day.sel .dot, .day.done .dot { background: #fff; }
+
+  .progress-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 9px; }
+  .progress-head strong { font-size: 15px; }
+  .progress-head span { font-size: 13px; color: #8a8f98; }
+  .bar { height: 8px; background: #e9ebee; border-radius: 99px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 0%; background: #2f6bff; border-radius: 99px; transition: width .25s ease; }
+
+  form.add { display: flex; gap: 8px; }
+  input[type="text"], input[type="number"] {
+    padding: 11px 12px; border: 1px solid #dfe1e5; border-radius: 10px;
+    font-size: 16px; outline: none; width: 100%; font-family: inherit; background: #fff;
+  }
+  input[type="text"]:focus, input[type="number"]:focus { border-color: #2f6bff; }
+  button.primary {
+    padding: 0 16px; border: none; border-radius: 10px; background: #2f6bff;
+    color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  }
+  ul { list-style: none; }
+  .row { padding: 12px 0; border-bottom: 1px solid #f0f1f3; }
+  .row:last-child { border-bottom: none; }
+  .row-top { display: flex; align-items: center; gap: 11px; }
+  .check {
+    width: 26px; height: 26px; flex: 0 0 26px; border: 2px solid #cfd3d8;
+    border-radius: 50%; background: #fff; cursor: pointer; color: transparent;
+    display: flex; align-items: center; justify-content: center; font-size: 13px;
+  }
+  .check.on { background: #2f6bff; border-color: #2f6bff; color: #fff; }
+  .name { flex: 1; font-size: 15px; }
+  .row.done .name { color: #a8adb5; text-decoration: line-through; }
+  .unit { font-size: 12px; color: #a8adb5; }
+  .del { border: none; background: none; cursor: pointer; color: #c2c7cd; font-size: 20px; line-height: 1; padding: 6px 4px; }
+  .row-bottom { display: flex; gap: 8px; margin: 9px 0 0 37px; }
+  .stepper { display: flex; align-items: center; gap: 6px; }
+  .stepper button {
+    width: 34px; height: 34px; flex: 0 0 34px; border: 1px solid #dfe1e5;
+    background: #fff; border-radius: 8px; cursor: pointer; font-size: 16px; color: #4a5058;
+  }
+  .stepper input { width: 64px; text-align: center; flex: none; }
+
+  .stat-total { display: flex; gap: 8px; margin-bottom: 14px; }
+  .stat-box { flex: 1; background: #f7f8fa; border-radius: 10px; padding: 10px 12px; }
+  .stat-box .k { font-size: 11px; color: #8a8f98; }
+  .stat-box .v { font-size: 17px; font-weight: 700; margin-top: 3px; }
+
+  .chart { display: flex; align-items: flex-end; gap: 4px; height: 110px; }
+  .chart .col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+  .chart .col .fill { width: 100%; background: #dfe6ff; border-radius: 5px 5px 0 0; min-height: 2px; }
+  .chart .col.peak .fill { background: #2f6bff; }
+  .chart .col.zero .fill { background: #eef0f3; }
+  .chart .col .num { font-size: 10px; color: #8a8f98; margin-bottom: 3px; height: 12px; }
+  .chart-x { display: flex; gap: 4px; margin-top: 6px; }
+  .chart-x .col { flex: 1; text-align: center; font-size: 10px; color: #a8adb5; }
+
+  .empty { color: #a8adb5; font-size: 14px; text-align: center; padding: 22px 0; }
+  .hint { font-size: 12px; color: #a8adb5; margin-top: 10px; line-height: 1.6; }
+
+  .install {
+    display: none; align-items: center; gap: 10px;
+    background: #eef3ff; border-radius: 14px; padding: 12px 14px; margin-bottom: 14px;
+  }
+  .install.show { display: flex; }
+  .install p { flex: 1; font-size: 13px; color: #2f4fa8; line-height: 1.5; }
+  .install button {
+    border: none; background: #2f6bff; color: #fff; border-radius: 9px;
+    padding: 9px 14px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  }
+  .offline-tag {
+    display: none; font-size: 12px; color: #b26a00; background: #fff4e0;
+    border-radius: 8px; padding: 6px 10px; margin-bottom: 12px;
+  }
+  .offline-tag.show { display: block; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="offline-tag" id="offlineTag">오프라인 상태입니다. 기록은 계속 저장됩니다.</div>
+
+  <div class="install" id="installBox">
+    <p>홈 화면에 추가하면 앱처럼 열 수 있어요.</p>
+    <button type="button" id="installBtn">설치</button>
+  </div>
+
+  <header>
+    <h1>운동 기록</h1>
+    <div class="sub" id="todayLabel"></div>
+  </header>
+
+  <div class="card">
+    <div class="month-nav">
+      <button id="prevMonth" type="button" aria-label="이전 달">‹</button>
+      <div class="month-label" id="monthLabel"></div>
+      <button id="nextMonth" type="button" aria-label="다음 달">›</button>
+    </div>
+    <div class="weekdays">
+      <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="hint">날짜를 눌러 그날의 기록을 확인하세요. 파란 날은 전부 완료한 날입니다.</div>
+  </div>
+
+  <div class="card">
+    <h2 id="selectedTitle"></h2>
+    <div class="progress-head">
+      <strong>완료 현황</strong>
+      <span id="count">0 / 0</span>
+    </div>
+    <div class="bar"><i id="bar"></i></div>
+  </div>
+
+  <div class="card">
+    <h2>운동 항목 추가</h2>
+    <form class="add" id="addForm">
+      <input type="text" id="newName" placeholder="예: 달리기" autocomplete="off" maxlength="20">
+      <input type="text" id="newUnit" placeholder="단위" autocomplete="off" maxlength="6" style="width:80px;flex:none">
+      <button class="primary" type="submit">추가</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <ul id="list"></ul>
+    <div class="empty" id="empty">운동 항목을 추가해 보세요. (단위: km, 개, 분 등)</div>
+  </div>
+
+  <div class="card">
+    <h2>월간 누적 통계</h2>
+    <div class="stat-total">
+      <div class="stat-box"><div class="k">이번 달 완료일</div><div class="v" id="statDays">0일</div></div>
+      <div class="stat-box"><div class="k">이번 달 총 기록</div><div class="v" id="statEntries">0건</div></div>
+    </div>
+    <div id="chartWrap">
+      <div class="chart" id="chart"></div>
+      <div class="chart-x" id="chartX"></div>
+    </div>
+    <div class="empty" id="chartEmpty">이번 달 기록이 없습니다.</div>
+  </div>
+
+</div>
+
+<script src="./app.js"></script>
+</body>
+</html>
