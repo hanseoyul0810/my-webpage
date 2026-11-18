@@ -203,45 +203,114 @@
 
     /* ============================================================
        9. 프로젝트 (id="projects")
-          class 선택자 .project = 반복되는 항목 공통 디자인
+          카드 전체가 링크: 아이콘 + 제목 + 설명, 호버 시 흔들림 + 화살표 안내
        ============================================================ */
-    .project {
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 1.5rem;
-      margin-top: 1.2rem;
-      transition: box-shadow 0.2s ease, transform 0.2s ease;
+    .project-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.9rem;
     }
 
-    .project:hover {
-      box-shadow: 0 4px 14px rgba(43, 108, 176, 0.15);
-      transform: translateY(-2px);
+    .project {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.1rem 3rem 1.1rem 1.1rem;
+      background-color: #ffffff;
+      border: 1px solid #e8ecf1;
+      border-radius: 12px;
+      color: inherit;
+      text-decoration: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .project:hover,
+    .project:focus-visible {
+      text-decoration: none;
+      border-color: #90b4e0;
+      box-shadow: 0 6px 18px rgba(43, 108, 176, 0.14);
+      transform: translateY(-3px);
+      animation: project-wiggle 0.55s ease;
+      outline: none;
+    }
+
+    .project-icon {
+      flex: 0 0 auto;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      line-height: 1;
+      background-color: #ebf4ff;
+      border-radius: 12px;
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .project:hover .project-icon {
+      background-color: #d6e8ff;
+      transform: scale(1.08) rotate(-6deg);
+    }
+
+    .project-body {
+      min-width: 0;
     }
 
     .project-title {
-      font-size: 1.15rem;
+      font-size: 1.08rem;
       font-weight: 700;
-      color: #1f2933;
-      margin-bottom: 0.5rem;
+      color: #1a202c;
+      line-height: 1.35;
+      margin-bottom: 0.2rem;
+      transition: color 0.2s ease;
+    }
+
+    .project:hover .project-title {
+      color: #2b6cb0;
     }
 
     .project-desc {
-      margin-bottom: 0.9rem;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      color: #a0aec0;
+      margin-bottom: 0;
     }
 
-    .project-link {
-      display: inline-block;
-      font-weight: 600;
-      background-color: #2b6cb0;
-      color: #ffffff;
-      padding: 0.5rem 1.1rem;
-      border-radius: 6px;
-      transition: background-color 0.2s ease;
+    /* 연결 안내 화살표 (카드 오른쪽) */
+    .project::after {
+      content: "\2197";
+      position: absolute;
+      top: 50%;
+      right: 1.1rem;
+      transform: translateY(-50%);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #cbd5e0;
+      transition: color 0.2s ease, transform 0.2s ease;
     }
 
-    .project-link:hover {
-      background-color: #1a365d;
-      text-decoration: none;
+    .project:hover::after,
+    .project:focus-visible::after {
+      color: #2b6cb0;
+      transform: translate(3px, calc(-50% - 3px));
+    }
+
+    @keyframes project-wiggle {
+      0%   { transform: translateY(-3px) rotate(0deg); }
+      20%  { transform: translateY(-3px) rotate(-1.2deg); }
+      40%  { transform: translateY(-3px) rotate(1.2deg); }
+      60%  { transform: translateY(-3px) rotate(-0.8deg); }
+      80%  { transform: translateY(-3px) rotate(0.8deg); }
+      100% { transform: translateY(-3px) rotate(0deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .project:hover,
+      .project:focus-visible {
+        animation: none;
+      }
     }
 
     /* ============================================================
@@ -314,13 +383,12 @@
         margin-bottom: 1.4rem;
       }
 
-      .project {
-        padding: 1.2rem;
+      .project-list {
+        grid-template-columns: 1fr;
       }
 
-      .project-link {
-        display: block;
-        text-align: center;
+      .project {
+        padding: 1rem 2.6rem 1rem 1rem;
       }
 
       section[id] {
@@ -396,97 +464,135 @@
     <section id="projects" class="section">
       <h2>프로젝트</h2>
 
-      <!-- 개별 프로젝트 항목 (반복 시 이 <article>을 복사) -->
-      <article class="project">
-        <h3 class="project-title">오늘의 할 일 관리</h3>
-        <p class="project-desc">하루 동안 해야 할 일을 정리하고 확인할 수 있는 할 일 관리 페이지</p>
-        <a class="project-link" href="file.html" target="_blank">결과물 보기</a>
-      </article>
-      <article class="project">
-        <h3 class="project-title">디지털 이름 도장 생성 앱</h3>
-        <p class="project-desc">행정 서류 및 공문서 작성을 자주 처리하는 교사를 위한 도장 만들기</p>
-        <a class="project-link" href="code_artifact (1).html" target="_blank">결과물 보기</a>
-      </article>
-       <article class="project">
-        <h3 class="project-title">감정 상태별 명언 추천 앱</h3>
-        <p class="project-desc">일상에서 격려의 문장을 읽고 싶은 20대를 위한 감정 상태별 명언 추천</p>
-        <a class="project-link" href="code_artifact (3).html" target="_blank">결과물 보기</a>
-      </article>
-       <article class="project">
-        <h3 class="project-title">카드 뒤집기 게임</h3>
-        <p class="project-desc">초등학교 저학년 학생을 위한 동물 짝 맞추기 게임</p>
-        <a class="project-link" href="code_artifact (4).html" target="_blank">결과물 보기</a>
-      </article>
-       <article class="project">
-        <h3 class="project-title">객관식 퀴즈 앱</h3>
-        <p class="project-desc">독도의 날 4지선다형 문제 풀이</p>
-        <a class="project-link" href="file (3).html" target="_blank">결과물 보기</a>
-      </article>
-      <article class="project">
-        <h3 class="project-title">도형 학습 도구</h3>
-        <p class="project-desc">공간감각 및 도형 학습 필요자를 위한 교구 앱</p>
-        <a class="project-link" href="code_artifact (5).html" target="_blank">결과물 보기</a>
-      </article>
-      <article class="project">
-        <h3 class="project-title">조선시대 역사 연표</h3>
-        <p class="project-desc">조선시대 연도별 주요 사건 인터랙티브 연표</p>
-        <a class="project-link" href="file (6).html" target="_blank">결과물 보기</a>
-      </article>
-      <article class="project">
-        <h3 class="project-title">디지털 리터러시 자기평가</h3>
-        <p class="project-desc">학생 역량 지표 데이터를 다각형 차트로 시각화하고 전후 결과 비교</p>
-        <a class="project-link" href="student_competency_analysis.html" target="_blank">결과물 보기</a>
-      </article>
-      <article class="project">
-        <h3 class="project-title">주사위 시뮬레이터</h3>
-        <p class="project-desc">주사위를 수천 번 던지는 대량 확률 실험</p>
-        <a class="project-link" href="file (8).html" target="_blank">결과물 보기</a>
-      </article>
-      <article class="project">
-        <h3 class="project-title">속담 이어서 말하기 게임</h3>
-        <p class="project-desc">속담의 앞구절 보고 뒤를 맞히기</p>
-        <a class="project-link" href="file (9).html" target="_blank">결과물 보기</a>
-      </article>
-      <article class="project">
-        <h3 class="project-title">수학 대모험 게임</h3>
-        <p class="project-desc">사칙연산을 게임으로 학습하기</p>
-        <a class="project-link" href="math_adventure.html" target="_blank">결과물 보기</a>
-      </article>
-      <article class="project">
-        <h3 class="project-title">시계 읽기 연습</h3>
-        <p class="project-desc">아날로그 시계를 보고 시각을 읽는 연습</p>
-        <a class="project-link" href="file (18).html" target="_blank">결과물 보기</a>
-      </article>
-      <article class="project">
-        <h3 class="project-title">캐치마인드</h3>
-        <p class="project-desc">사용자가 그린 그림을 실시간 분석 후 정답을 맞히기</p>
-        <a class="project-link" href="https://share.gemini.google/03Z62tIiiJJ7" target="_blank">결과물 보기</a>
-      </article>
-      <article class="project">
-        <h3 class="project-title">칼로리 자동 계산</h3>
-        <p class="project-desc">음식 사진을 업로드하면 칼로리 계산</p>
-        <a class="project-link" href="https://share.gemini.google/892rjQbWgeRo" target="_blank">결과물 보기</a>
-      </article>
-      <article class="project">
-        <h3 class="project-title">운동 기록 저장 관리</h3>
-        <p class="project-desc">운동 기록 모바일 앱</p>
-        <a class="project-link" href="workout-pwa" target="_blank">결과물 보기</a>
-      </article>
-      <article class="project">
-        <h3 class="project-title">영수증 정리도우미</h3>
-        <p class="project-desc">영수증 이미지를 자동으로 추출하고 정리</p>
-        <a class="project-link" href="Money (2).html" target="_blank">결과물 보기</a>
-      </article>
-      <article class="project">
-        <h3 class="project-title">학급 생일 관리 앱</h3>
-        <p class="project-desc">다가오는 반 아이들의 생일 관리</p>
-        <a class="project-link" href="https://script.google.com/macros/s/AKfycbwBHLo-Gko2oRSC_JZRNgd34_zQ4v6VQ_M5UYeIT5Ly3MLtpn-ZqiwI-MdBEHK6LfA/exec" target="_blank">결과물 보기</a>
-      </article>
-      <article class="project">
-        <h3 class="project-title">비밀 우체통</h3>
-        <p class="project-desc">비대면으로 고민을 상담</p>
-        <a class="project-link" href="https://script.google.com/macros/s/AKfycbwumlHmRYZg2SWeRZPD_S8yPPbzfV59U_UHs6tpSIxhG5QQeDTKYq7KFzMQgtBmLMWSww/exec" target="_blank">결과물 보기</a>
-      </article>
+      <!-- 개별 프로젝트 항목 (반복 시 이 <a class="project">를 복사) -->
+      <div class="project-list">
+        <a class="project" href="file.html" target="_blank" rel="noopener">
+          <span class="project-icon" aria-hidden="true">✅</span>
+          <div class="project-body">
+            <h3 class="project-title">오늘의 할 일 관리</h3>
+            <p class="project-desc">하루 동안 해야 할 일을 정리하고 확인할 수 있는 할 일 관리 페이지</p>
+          </div>
+        </a>
+        <a class="project" href="code_artifact (1).html" target="_blank" rel="noopener">
+          <span class="project-icon" aria-hidden="true">📛</span>
+          <div class="project-body">
+            <h3 class="project-title">디지털 이름 도장 생성 앱</h3>
+            <p class="project-desc">행정 서류 및 공문서 작성을 자주 처리하는 교사를 위한 도장 만들기</p>
+          </div>
+        </a>
+        <a class="project" href="code_artifact (3).html" target="_blank" rel="noopener">
+          <span class="project-icon" aria-hidden="true">💬</span>
+          <div class="project-body">
+            <h3 class="project-title">감정 상태별 명언 추천 앱</h3>
+            <p class="project-desc">일상에서 격려의 문장을 읽고 싶은 20대를 위한 감정 상태별 명언 추천</p>
+          </div>
+        </a>
+        <a class="project" href="code_artifact (4).html" target="_blank" rel="noopener">
+          <span class="project-icon" aria-hidden="true">🃏</span>
+          <div class="project-body">
+            <h3 class="project-title">카드 뒤집기 게임</h3>
+            <p class="project-desc">초등학교 저학년 학생을 위한 동물 짝 맞추기 게임</p>
+          </div>
+        </a>
+        <a class="project" href="file (3).html" target="_blank" rel="noopener">
+          <span class="project-icon" aria-hidden="true">❓</span>
+          <div class="project-body">
+            <h3 class="project-title">객관식 퀴즈 앱</h3>
+            <p class="project-desc">독도의 날 4지선다형 문제 풀이</p>
+          </div>
+        </a>
+        <a class="project" href="code_artifact (5).html" target="_blank" rel="noopener">
+          <span class="project-icon" aria-hidden="true">🔷</span>
+          <div class="project-body">
+            <h3 class="project-title">도형 학습 도구</h3>
+            <p class="project-desc">공간감각 및 도형 학습 필요자를 위한 교구 앱</p>
+          </div>
+        </a>
+        <a class="project" href="file (6).html" target="_blank" rel="noopener">
+          <span class="project-icon" aria-hidden="true">📜</span>
+          <div class="project-body">
+            <h3 class="project-title">조선시대 역사 연표</h3>
+            <p class="project-desc">조선시대 연도별 주요 사건 인터랙티브 연표</p>
+          </div>
+        </a>
+        <a class="project" href="student_competency_analysis.html" target="_blank" rel="noopener">
+          <span class="project-icon" aria-hidden="true">📊</span>
+          <div class="project-body">
+            <h3 class="project-title">디지털 리터러시 자기평가</h3>
+            <p class="project-desc">학생 역량 지표 데이터를 다각형 차트로 시각화하고 전후 결과 비교</p>
+          </div>
+        </a>
+        <a class="project" href="file (8).html" target="_blank" rel="noopener">
+          <span class="project-icon" aria-hidden="true">🎲</span>
+          <div class="project-body">
+            <h3 class="project-title">주사위 시뮬레이터</h3>
+            <p class="project-desc">주사위를 수천 번 던지는 대량 확률 실험</p>
+          </div>
+        </a>
+        <a class="project" href="file (9).html" target="_blank" rel="noopener">
+          <span class="project-icon" aria-hidden="true">🗣️</span>
+          <div class="project-body">
+            <h3 class="project-title">속담 이어서 말하기 게임</h3>
+            <p class="project-desc">속담의 앞구절 보고 뒤를 맞히기</p>
+          </div>
+        </a>
+        <a class="project" href="math_adventure.html" target="_blank" rel="noopener">
+          <span class="project-icon" aria-hidden="true">➕</span>
+          <div class="project-body">
+            <h3 class="project-title">수학 대모험 게임</h3>
+            <p class="project-desc">사칙연산을 게임으로 학습하기</p>
+          </div>
+        </a>
+        <a class="project" href="file (18).html" target="_blank" rel="noopener">
+          <span class="project-icon" aria-hidden="true">🕒</span>
+          <div class="project-body">
+            <h3 class="project-title">시계 읽기 연습</h3>
+            <p class="project-desc">아날로그 시계를 보고 시각을 읽는 연습</p>
+          </div>
+        </a>
+        <a class="project" href="https://share.gemini.google/03Z62tIiiJJ7" target="_blank" rel="noopener">
+          <span class="project-icon" aria-hidden="true">🎨</span>
+          <div class="project-body">
+            <h3 class="project-title">캐치마인드</h3>
+            <p class="project-desc">사용자가 그린 그림을 실시간 분석 후 정답을 맞히기</p>
+          </div>
+        </a>
+        <a class="project" href="https://share.gemini.google/892rjQbWgeRo" target="_blank" rel="noopener">
+          <span class="project-icon" aria-hidden="true">🥗</span>
+          <div class="project-body">
+            <h3 class="project-title">칼로리 자동 계산</h3>
+            <p class="project-desc">음식 사진을 업로드하면 칼로리 계산</p>
+          </div>
+        </a>
+        <a class="project" href="workout-pwa" target="_blank" rel="noopener">
+          <span class="project-icon" aria-hidden="true">🏋️</span>
+          <div class="project-body">
+            <h3 class="project-title">운동 기록 저장 관리</h3>
+            <p class="project-desc">운동 기록 모바일 앱</p>
+          </div>
+        </a>
+        <a class="project" href="Money (2).html" target="_blank" rel="noopener">
+          <span class="project-icon" aria-hidden="true">🧾</span>
+          <div class="project-body">
+            <h3 class="project-title">영수증 정리도우미</h3>
+            <p class="project-desc">영수증 이미지를 자동으로 추출하고 정리</p>
+          </div>
+        </a>
+        <a class="project" href="https://script.google.com/macros/s/AKfycbwBHLo-Gko2oRSC_JZRNgd34_zQ4v6VQ_M5UYeIT5Ly3MLtpn-ZqiwI-MdBEHK6LfA/exec" target="_blank" rel="noopener">
+          <span class="project-icon" aria-hidden="true">🎂</span>
+          <div class="project-body">
+            <h3 class="project-title">학급 생일 관리 앱</h3>
+            <p class="project-desc">다가오는 반 아이들의 생일 관리</p>
+          </div>
+        </a>
+        <a class="project" href="https://script.google.com/macros/s/AKfycbwumlHmRYZg2SWeRZPD_S8yPPbzfV59U_UHs6tpSIxhG5QQeDTKYq7KFzMQgtBmLMWSww/exec" target="_blank" rel="noopener">
+          <span class="project-icon" aria-hidden="true">📮</span>
+          <div class="project-body">
+            <h3 class="project-title">비밀 우체통</h3>
+            <p class="project-desc">비대면으로 고민을 상담</p>
+          </div>
+        </a>
+      </div>
     </section>
 
   </main>
