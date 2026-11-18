@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>평면도형 회전 및 뒤집기 디지털 교구</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts (Inter & Jua for cute educational feel) -->
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Jua', sans-serif;
+            touch-action: manipulation;
+        }
+        .font-jua {
+            font-family: 'Jua', sans-serif;
+        }
+        /* Custom smooth transition for shape transform */
+        .shape-transform-transition {
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 min-h-screen text-slate-800 flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-indigo-100 py-4 px-6">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600 text-white p-2.5 rounded-2xl shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-jua text-indigo-900 tracking-wide">도형 뱅글뱅글 뒹굴 교구</h1>
+                    <p class="text-xs text-slate-500">평면도형의 회전과 좌우·상하 뒤집기를 탐구해요!</p>
+                </div>
+            </div>
+            <!-- Mode Switcher Tabs -->
+            <div class="flex bg-slate-100 p-1.5 rounded-2xl gap-1 shadow-inner">
+                <button id="tab-practice" onclick="switchMode('practice')" class="px-5 py-2 rounded-xl font-jua text-sm transition-all shadow-sm bg-white text-indigo-600">
+                    ✨ 연습 모드
+                </button>
+                <button id="tab-quiz" onclick="switchMode('quiz')" class="px-5 py-2 rounded-xl font-jua text-sm transition-all text-slate-600 hover:text-indigo-600">
+                    🎯 퀴즈 모드
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Column: Controls & Shape Selection (Span 5) -->
+        <section class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- Shape Selection Card -->
+            <div class="bg-white p-5 rounded-3xl shadow-sm border border-indigo-50">
+                <h2 class="text-base font-jua text-indigo-800 mb-3 flex items-center gap-2">
+                    <span class="inline-block w-2 h-2 rounded-full bg-indigo-500"></span>
+                    도형 선택하기
+                </h2>
+                <div class="grid grid-cols-3 gap-2.5" id="shape-buttons">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+            <!-- Transformation Controls Card -->
+            <div class="bg-white p-5 rounded-3xl shadow-sm border border-indigo-50 flex-1 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-base font-jua text-indigo-800 mb-3 flex items-center gap-2">
+                        <span class="inline-block w-2 h-2 rounded-full bg-purple-500"></span>
+                        조작 버튼
+                    </h2>
+                    <p class="text-xs text-slate-500 mb-4">빨간색 마커 변을 기준으로 도형의 회전과 뒤집기를 관찰해보세요.</p>
+                    
+                    <!-- Action Grid -->
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <button onclick="rotateShape(-90)" class="flex items-center justify-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-jua py-3.5 px-4 rounded-2xl border border-indigo-100 transition shadow-sm active:scale-95">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                            </svg>
+                            반시계 90°
+                        </button>
+                        <button onclick="rotateShape(90)" class="flex items-center justify-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-jua py-3.5 px-4 rounded-2xl border border-indigo-100 transition shadow-sm active:scale-95">
+                            시계 90°
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 10H11a8 8 0 00-8 8v2m18-10l-6 6m6-6l-6-6" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <button onclick="flipShape('h')" class="flex items-center justify-center gap-2 bg-pink-50 hover:bg-pink-100 text-pink-700 font-jua py-3.5 px-4 rounded-2xl border border-pink-100 transition shadow-sm active:scale-95">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                            </svg>
+                            좌우 뒤집기
+                        </button>
+                        <button onclick="flipShape('v')" class="flex items-center justify-center gap-2 bg-pink-50 hover:bg-pink-100 text-pink-700 font-jua py-3.5 px-4 rounded-2xl border border-pink-100 transition shadow-sm active:scale-95">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 16V4m0 0L3 8m4-4l4 4m6 4v12m0 0l4-4m-4 4l-4-4" />
+                            </svg>
+                            상하 뒤집기
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Reset Button -->
+                <button onclick="resetTransform()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-jua py-3 rounded-2xl transition flex items-center justify-center gap-2 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    처음 위치로 초기화
+                </button>
+            </div>
+
+        </section>
+
+        <!-- Right Column: Interactive Canvas & Quiz Panel (Span 7) -->
+        <section class="lg:col-span-7 flex flex-col gap-6">
+
+            <!-- Canvas Viewport Box -->
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-indigo-50 flex flex-col items-center relative overflow-hidden min-h-[420px] justify-center">
+                
+                <!-- Status Badge / Quiz Header info -->
+                <div id="mode-info-bar" class="w-full flex justify-between items-center mb-4 px-2">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-jua" id="current-shape-name">정삼각형</span>
+                        <span class="text-xs text-slate-400" id="transform-status-text">회전: 0° | 뒤집기: 없음</span>
+                    </div>
+                    <div id="quiz-header-status" class="hidden text-xs font-jua text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
+                        연속 정답: <span id="streak-count">0</span>회
+                    </div>
+                </div>
+
+                <!-- Quiz Target Display (Enlarged and Clearer) -->
+                <div id="quiz-target-container" class="hidden mb-4 p-5 bg-purple-50/80 border-2 border-purple-200 rounded-3xl w-full flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+                    <div class="text-center sm:text-left">
+                        <span class="text-xs font-jua text-purple-700 block mb-1">🎯 목표 모양 (이 모양과 똑같이 만들어보세요!)</span>
+                        <div class="text-xs text-slate-600 font-medium" id="quiz-target-desc">회전 90° / 좌우 뒤집기</div>
+                    </div>
+                    <!-- Significantly larger target preview box -->
+                    <div id="target-svg-preview" class="w-36 h-36 bg-white rounded-2xl shadow-md border-2 border-purple-300 flex items-center justify-center p-3">
+                        <!-- Target rendered SVG preview -->
+                    </div>
+                </div>
+
+                <!-- Main SVG Playground Canvas -->
+                <div class="relative w-full aspect-square max-w-[360px] max-h-[360px] bg-indigo-50/30 rounded-3xl border-2 border-dashed border-indigo-100 flex items-center justify-center p-6 shadow-inner">
+                    <!-- Grid Background Lines -->
+                    <div class="absolute inset-0 grid grid-cols-6 grid-rows-6 pointer-events-none opacity-20">
+                        <div class="border-b border-r border-indigo-400"></div><div class="border-b border-r border-indigo-400"></div><div class="border-b border-r border-indigo-400"></div><div class="border-b border-r border-indigo-400"></div><div class="border-b border-r border-indigo-400"></div><div class="border-b border-indigo-400"></div>
+                        <div class="border-b border-r border-indigo-400"></div><div class="border-b border-r border-indigo-400"></div><div class="border-b border-r border-indigo-400"></div><div class="border-b border-r border-indigo-400"></div><div class="border-b border-r border-indigo-400"></div><div class="border-b border-indigo-400"></div>
+                        <div class="border-b border-r border-indigo-400"></div><div class="border-b border-r border-indigo-400"></div><div class="border-b border-r border-indigo-400"></div><div class="border-b border-r border-indigo-400"></div><div class="border-b border-r border-indigo-400"></div><div class="border-b border-indigo-400"></div>
+                        <div class="border-b border-r border-indigo-400"></div><div class="border-b border-r border-indigo-400"></div><div class="border-b border-r border-indigo-400"></div><div class="border-b border-r border-indigo-400"></div><div class="border-b border-r border-indigo-400"></div><div class="border-b border-indigo-400"></div>
+                        <div class="border-b border-r border-indigo-400"></div><div class="border-b border-r border-indigo-400"></div><div class="border-b border-r border-indigo-400"></div><div class="border-b border-r border-indigo-400"></div><div class="border-b border-r border-indigo-400"></div><div class="border-b border-indigo-400"></div>
+                        <div class="border-r border-indigo-400"></div><div class="border-r border-indigo-400"></div><div class="border-r border-indigo-400"></div><div class="border-r border-indigo-400"></div><div class="border-r border-indigo-400"></div><div></div>
+                    </div>
+
+                    <!-- Shape Render Area -->
+                    <div id="shape-render-box" class="w-full h-full flex items-center justify-center shape-transform-transition">
+                        <!-- SVG shape generated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Quiz Action Bottom Bar (Only visible in Quiz Mode) -->
+                <div id="quiz-action-bar" class="hidden w-full mt-5 flex gap-3">
+                    <button onclick="checkQuizAnswer()" class="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-jua py-3.5 px-6 rounded-2xl shadow-md transition transform active:scale-95 text-center">
+                        ✨ 정답 확인하기
+                    </button>
+                    <button onclick="nextQuizProblem()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-jua py-3.5 px-5 rounded-2xl transition text-center">
+                        다음 문제 ➡️
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Helpful Tip Card -->
+            <div class="bg-indigo-900 text-indigo-100 p-5 rounded-3xl shadow-sm flex items-start gap-4">
+                <div class="bg-indigo-800 p-2.5 rounded-2xl text-yellow-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-jua text-white text-base mb-1">선생님 & 학생 학습 팁!</h3>
+                    <p class="text-xs text-indigo-200 leading-relaxed">
+                        도형의 빨간색 테두리 변(마커)이 어디로 이동하는지 살펴보세요. 회전을 거듭할 때 모양이 어떻게 돌아가는지, 뒤집었을 때 좌우가 어떻게 바뀌는지 직관적으로 이해할 수 있어요.
+                    </p>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Custom Notification Modal -->
+    <div id="modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center transform transition-all scale-95 opacity-0" id="modal-content">
+            <div id="modal-icon" class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl font-jua">🎉</div>
+            <h3 id="modal-title" class="text-xl font-jua text-slate-800 mb-2">정답입니다!</h3>
+            <p id="modal-desc" class="text-sm text-slate-500 mb-6">목표 모양과 완벽하게 일치해요!</p>
+            <button onclick="closeModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-jua py-3 rounded-2xl transition shadow-md">
+                확인
+            </button>
+        </div>
+    </div>
+
+    <!-- Application JavaScript Logic -->
+    <script>
+        // --- Shape Definitions ---
+        const shapes = {
+            triangle: {
+                name: "정삼각형",
+                points: [
+                    { x: 0, y: -45 },
+                    { x: 40, y: 30 },
+                    { x: -40, y: 30 }
+                ],
+                markerEdge: 0
+            },
+            square: {
+                name: "정사각형",
+                points: [
+                    { x: -35, y: -35 },
+                    { x: 35, y: -35 },
+                    { x: 35, y: 35 },
+                    { x: -35, y: 35 }
+                ],
+                markerEdge: 0
+            },
+            rightTriangle: {
+                name: "직각삼각형",
+                points: [
+                    { x: -35, y: -35 },
+                    { x: 35, y: 35 },
+                    { x: -35, y: 35 }
+                ],
+                markerEdge: 2
+            },
+            arrow: {
+                name: "화살표 블록",
+                points: [
+                    { x: 0, y: -45 },
+                    { x: 35, y: -10 },
+                    { x: 15, y: -10 },
+                    { x: 15, y: 45 },
+                    { x: -15, y: 45 },
+                    { x: -15, y: -10 },
+                    { x: -35, y: -10 }
+                ],
+                markerEdge: 0
+            },
+            lShape: {
+                name: "L자형 블록",
+                points: [
+                    { x: -30, y: -45 },
+                    { x: -5, y: -45 },
+                    { x: -5, y: 20 },
+                    { x: 35, y: 20 },
+                    { x: 35, y: 45 },
+                    { x: -30, y: 45 }
+                ],
+                markerEdge: 0
+            }
+        };
+
+        // --- Application State ---
+        let currentMode = 'practice';
+        let selectedShapeKey = 'triangle';
+        let currentRotation = 0;
+        let currentFlipH = false;
+        let currentFlipV = false;
+
+        // Quiz specific state
+        let quizTarget = {
+            shapeKey: 'triangle',
+            rotation: 0,
+            flipH: false,
+            flipV: false
+        };
+        let streakCount = 0;
+
+        // --- Initialization ---
+        window.onload = function() {
+            renderShapeButtons();
+            updateDisplay();
+        };
+
+        // --- UI Rendering: Shape Buttons ---
+        function renderShapeButtons() {
+            const container = document.getElementById('shape-buttons');
+            container.innerHTML = '';
+            for (const [key, shape] of Object.entries(shapes)) {
+                const btn = document.createElement('button');
+                btn.className = `flex flex-col items-center justify-center p-3 rounded-2xl border transition text-xs font-jua gap-1.5 ${
+                    selectedShapeKey === key 
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' 
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                }`;
+                btn.onclick = () => selectShape(key);
+                
+                btn.innerHTML = `
+                    <svg class="w-8 h-8" viewBox="-50 -50 100 100">
+                        ${getShapeSVGContent(key, 'currentColor')}
+                    </svg>
+                    <span>${shape.name}</span>
+                `;
+                container.appendChild(btn);
+            }
+        }
+
+        // --- Mode Switching ---
+        function switchMode(mode) {
+            currentMode = mode;
+            const btnPractice = document.getElementById('tab-practice');
+            const btnQuiz = document.getElementById('tab-quiz');
+            const quizHeaderStatus = document.getElementById('quiz-header-status');
+            const quizTargetContainer = document.getElementById('quiz-target-container');
+            const quizActionBar = document.getElementById('quiz-action-bar');
+            const transformStatusText = document.getElementById('transform-status-text');
+
+            if (mode === 'practice') {
+                btnPractice.className = "px-5 py-2 rounded-xl font-jua text-sm transition-all shadow-sm bg-white text-indigo-600";
+                btnQuiz.className = "px-5 py-2 rounded-xl font-jua text-sm transition-all text-slate-600 hover:text-indigo-600";
+                quizHeaderStatus.classList.add('hidden');
+                quizTargetContainer.classList.add('hidden');
+                quizActionBar.classList.add('hidden');
+                transformStatusText.classList.remove('hidden');
+                resetTransform();
+            } else {
+                btnQuiz.className = "px-5 py-2 rounded-xl font-jua text-sm transition-all shadow-sm bg-white text-purple-600";
+                btnPractice.className = "px-5 py-2 rounded-xl font-jua text-sm transition-all text-slate-600 hover:text-indigo-600";
+                quizHeaderStatus.classList.remove('hidden');
+                quizTargetContainer.classList.remove('hidden');
+                quizActionBar.classList.remove('hidden');
+                transformStatusText.classList.add('hidden');
+                startNewQuiz();
+            }
+        }
+
+        // --- Shape Selection Action ---
+        function selectShape(key) {
+            selectedShapeKey = key;
+            resetTransform();
+            renderShapeButtons();
+            document.getElementById('current-shape-name').textContent = shapes[key].name;
+            updateDisplay();
+        }
+
+        // --- Transformation Actions ---
+        function rotateShape(deg) {
+            currentRotation = (currentRotation + deg + 360) % 360;
+            updateDisplay();
+        }
+
+        function flipShape(axis) {
+            if (axis === 'h') currentFlipH = !currentFlipH;
+            if (axis === 'v') currentFlipV = !currentFlipV;
+            updateDisplay();
+        }
+
+        function resetTransform() {
+            currentRotation = 0;
+            currentFlipH = false;
+            currentFlipV = false;
+            updateDisplay();
+        }
+
+        // --- SVG Generator with Thinner, Refined Lines ---
+        function getShapeSVGContent(shapeKey, defaultColor = "#4f46e5") {
+            const shape = shapes[shapeKey];
+            const pts = shape.points;
+            const markerIdx = shape.markerEdge;
+            const nextMarkerIdx = (markerIdx + 1) % pts.length;
+
+            let svgContent = '';
+
+            // Generate regular edges and highlight the marker edge with a clean, thin line style (e.g. 2px / 4px)
+            for (let i = 0; i < pts.length; i++) {
+                const p1 = pts[i];
+                const p2 = pts[(i + 1) % pts.length];
+                const isMarker = (i === markerIdx);
+                const strokeColor = isMarker ? '#ef4444' : (defaultColor === 'currentColor' ? 'currentColor' : '#334155');
+                const strokeWidth = isMarker ? '3.5' : '2';
+
+                svgContent += `<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${strokeColor}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" />`;
+            }
+
+            // Fill polygon background
+            const pointsString = pts.map(p => `${p.x},${p.y}`).join(' ');
+            const fillColor = defaultColor === 'currentColor' ? 'currentColor' : '#e0e7ff';
+            const fillOpacity = defaultColor === 'currentColor' ? '0.15' : '0.5';
+            svgContent = `<polygon points="${pointsString}" fill="${fillColor}" fill-opacity="${fillOpacity}" />` + svgContent;
+
+            // Small indicator marker dot
+            const m1 = pts[markerIdx];
+            const m2 = pts[nextMarkerIdx];
+            const midX = (m1.x + m2.x) / 2;
+            const midY = (m1.y + m2.y) / 2;
+            svgContent += `<circle cx="${midX}" cy="${midY}" r="3" fill="#ef4444" />`;
+
+            return svgContent;
+        }
+
+        // --- Update Screen Display ---
+        function updateDisplay() {
+            const shape = shapes[selectedShapeKey];
+            document.getElementById('current-shape-name').textContent = shape.name;
+
+            let statusStr = `회전: ${currentRotation}° | 뒤집기: `;
+            if (!currentFlipH && !currentFlipV) statusStr += '없음';
+            else {
+                let flips = [];
+                if (currentFlipH) flips.push('좌우');
+                if (currentFlipV) flips.push('상하');
+                statusStr += flips.join(', ');
+            }
+            document.getElementById('transform-status-text').textContent = statusStr;
+
+            const renderBox = document.getElementById('shape-render-box');
+            let transformStr = `rotate(${currentRotation}deg)`;
+            if (currentFlipH) transformStr += ` scaleX(-1)`;
+            if (currentFlipV) transformStr += ` scaleY(-1)`;
+
+            renderBox.style.transform = transformStr;
+            renderBox.innerHTML = `
+                <svg class="w-full h-full overflow-visible" viewBox="-60 -60 120 120">
+                    ${getShapeSVGContent(selectedShapeKey, '#4f46e5')}
+                </svg>
+            `;
+        }
+
+        // --- Robust Geometry State Comparison Engine ---
+        // Computes the absolute final geometric position/orientation signature 
+        // to guarantee 100% accurate mathematical equivalence matching.
+        function getTransformedMarkerState(shapeKey, rot, flipH, flipV) {
+            const shape = shapes[shapeKey];
+            const pts = shape.points;
+            const markerIdx = shape.markerEdge;
+            const p1 = pts[markerIdx];
+            const p2 = pts[(markerIdx + 1) % pts.length];
+
+            // Helper for 2D transformation of points
+            function transformPoint(p, r, fh, fv) {
+                let x = p.x;
+                let y = p.y;
+                // Flip H
+                if (fh) x = -x;
+                // Flip V
+                if (fv) y = -y;
+                // Rotate
+                const rad = (r * Math.PI) / 180;
+                const cos = Math.cos(rad);
+                const sin = Math.sin(rad);
+                const rx = x * cos - y * sin;
+                const ry = x * sin + y * cos;
+                return { x: Math.round(rx * 100) / 100, y: Math.round(ry * 100) / 100 };
+            }
+
+            const tp1 = transformPoint(p1, rot, flipH, flipV);
+            const tp2 = transformPoint(p2, rot, flipH, flipV);
+            
+            // Midpoint of marker edge
+            const tMid = {
+                x: Math.round(((tp1.x + tp2.x) / 2) * 100) / 100,
+                y: Math.round(((tp1.y + tp2.y) / 2) * 100) / 100
+            };
+
+            return { tp1, tp2, tMid };
+        }
+
+        // --- Quiz Mode Logic ---
+        function startNewQuiz() {
+            const shapeKeys = Object.keys(shapes);
+            const randomShapeKey = shapeKeys[Math.floor(Math.random() * shapeKeys.length)];
+            selectedShapeKey = randomShapeKey;
+            renderShapeButtons();
+
+            const rotations = [0, 90, 180, 270];
+            const randomRot = rotations[Math.floor(Math.random() * rotations.length)];
+            const randomFlipH = Math.random() < 0.5;
+            const randomFlipV = Math.random() < 0.5;
+
+            quizTarget = {
+                shapeKey: randomShapeKey,
+                rotation: randomRot,
+                flipH: randomFlipH,
+                flipV: randomFlipV
+            };
+
+            currentRotation = 0;
+            currentFlipH = false;
+            currentFlipV = false;
+            updateDisplay();
+
+            renderQuizTargetPreview();
+            
+            let desc = `회전 ${randomRot}°`;
+            let flips = [];
+            if (randomFlipH) flips.push('좌우 뒤집기');
+            if (randomFlipV) flips.push('상하 뒤집기');
+            if (flips.length > 0) desc += ` / ${flips.join(' + ')}`;
+            else desc += ` / 뒤집기 없음`;
+            
+            document.getElementById('quiz-target-desc').textContent = desc;
+        }
+
+        function renderQuizTargetPreview() {
+            const previewBox = document.getElementById('target-svg-preview');
+            let transformStr = `rotate(${quizTarget.rotation}deg)`;
+            if (quizTarget.flipH) transformStr += ` scaleX(-1)`;
+            if (quizTarget.flipV) transformStr += ` scaleY(-1)`;
+
+            previewBox.innerHTML = `
+                <div class="w-full h-full flex items-center justify-center" style="transform: ${transformStr};">
+                    <svg class="w-full h-full overflow-visible" viewBox="-60 -60 120 120">
+                        ${getShapeSVGContent(quizTarget.shapeKey, '#9333ea')}
+                    </svg>
+                </div>
+            `;
+        }
+
+        function checkQuizAnswer() {
+            // Precise geometric matching comparison
+            const targetState = getTransformedMarkerState(quizTarget.shapeKey, quizTarget.rotation, quizTarget.flipH, quizTarget.flipV);
+            const userState = getTransformedMarkerState(selectedShapeKey, currentRotation, currentFlipH, currentFlipV);
+
+            // Compare endpoints and midpoint of marker edge to ensure exact orientation match
+            const isMatch = (
+                Math.abs(targetState.tp1.x - userState.tp1.x) < 1 &&
+                Math.abs(targetState.tp1.y - userState.tp1.y) < 1 &&
+                Math.abs(targetState.tp2.x - userState.tp2.x) < 1 &&
+                Math.abs(targetState.tp2.y - userState.tp2.y) < 1
+            );
+
+            if (isMatch) {
+                streakCount++;
+                document.getElementById('streak-count').textContent = streakCount;
+                showModal(true, "정답입니다! 🎉", "목표 도형의 회전과 뒤집기 상태를 정확히 맞췄어요!");
+            } else {
+                showModal(false, "아쉽네요! 😅", "빨간색 마커 변의 위치와 모양을 다시 한 번 자세히 비교해보세요.");
+            }
+        }
+
+        function nextQuizProblem() {
+            startNewQuiz();
+        }
+
+        // --- Modal Handling ---
+        function showModal(isSuccess, title, desc) {
+            const modal = document.getElementById('modal');
+            const content = document.getElementById('modal-content');
+            const icon = document.getElementById('modal-icon');
+            
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-desc').textContent = desc;
+            
+            if (isSuccess) {
+                icon.className = "w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl font-jua";
+                icon.textContent = "🎉";
+            } else {
+                icon.className = "w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl font-jua";
+                icon.textContent = "💡";
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            const content = document.getElementById('modal-content');
+            
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+                if (document.getElementById('modal-title').textContent.includes('정답')) {
+                    startNewQuiz();
+                }
+            }, 200);
+        }
+    </script>
+</body>
+</html>
